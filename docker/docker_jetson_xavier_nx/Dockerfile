@@ -106,3 +106,5 @@ WORKDIR ${HOME}/catkin_ws/src
 RUN git clone https://$GIT_PERSONAL_TOKEN@github.com/ciccio42/Ur5e-2f-85f.git
 WORKDIR ${HOME}/catkin_ws
 RUN sudo catkin build
+
+CMD ["/bin/bash", "/home/mivia/docker_jetson_xavier_nx/start.sh"]

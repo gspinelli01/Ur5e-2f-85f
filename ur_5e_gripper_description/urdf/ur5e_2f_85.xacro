@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="ur5e_2f_85">    
+    <xacro:macro name="tool0_to_gripper">
+        <xacro:include filename="$(find ur_description)/urdf/inc/ur5e_macro.xacro"/>
+        <xacro:include filename="$(find robotiq_2f_85_gripper_visualization)/urdf/robotiq_arg2f_85_model_macro.xacro"/>
+        <xacro:ur5e_robot prefix="" />
+        <xacro:robotiq_arg2f_85 prefix=""/>
+        
+        <joint name="joint_tool" type="fixed">
+            <parent link="tool0"/>
+            <child link="robotiq_arg2f_base_link"/>
+            <origin xyz="0 0 0.0169" rpy="0 0 0"/>
+        </joint>
+    </xacro:macro>
+    <xacro:tool0_to_gripper />
+</robot>

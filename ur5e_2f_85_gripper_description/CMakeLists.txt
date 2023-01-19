@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(ur_5e_gripper_description)
+project(ur5e_2f_85_gripper_description)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)

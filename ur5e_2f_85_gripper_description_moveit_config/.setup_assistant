@@ -1,6 +1,6 @@
 moveit_setup_assistant_config:
   URDF:
-    package: ur_5e_gripper_description
+    package: ur5e_2f_85_gripper_description
     relative_path: urdf/ur5e_2f_85.xacro
     xacro_args: ""
   SRDF:

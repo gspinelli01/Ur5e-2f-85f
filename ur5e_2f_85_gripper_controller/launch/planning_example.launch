@@ -1,0 +1,14 @@
+<launch>
+    <!-- Run move_group-->
+    <include file="$(find ur5e_2f_85_gripper_moveit_config)/launch/moveit_planning_execution.launch"/>
+
+    <!--Run moveit rviz-->
+    <include file="$(find ur5e_2f_85_gripper_moveit_config)/launch/moveit_rviz.launch"/>
+
+    <!--Run gripper controller node-->
+    <!--node name="robotiq2FGripper" pkg="robotiq_2f_gripper_control" type="Robotiq2FGripperRtuNode.py" args="/tmp/ttyUR"/-->
+
+    <!--Run planning example-->
+    <!--node name="plannig_example_node" pkg="ur5e_2f_85_gripper_controller" type="planning_example.py"/-->
+
+</launch>

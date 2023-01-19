@@ -1,0 +1,11 @@
+moveit_setup_assistant_config:
+  URDF:
+    package: ur_5e_gripper_description
+    relative_path: urdf/ur5e_2f_85.xacro
+    xacro_args: ""
+  SRDF:
+    relative_path: config/ur5e_2f_85.srdf
+  CONFIG:
+    author_name: Francesco Rosa
+    author_email: francescorosa97@virgilio.it
+    generated_timestamp: 1674123886

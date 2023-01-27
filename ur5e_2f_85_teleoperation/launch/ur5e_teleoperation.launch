@@ -1,0 +1,7 @@
+<launch>
+    <!--Teleoperation controller parameters-->
+    <rosparam command="load" file="$(find ur5e_2f_85_teleoperation)/config/teleoperation_controller.yaml" />
+
+    <node name="teleoperation_node" pkg="ur5e_2f_85_teleoperation" type="teleoperation_node.py"  output="screen"/>
+    
+</launch>

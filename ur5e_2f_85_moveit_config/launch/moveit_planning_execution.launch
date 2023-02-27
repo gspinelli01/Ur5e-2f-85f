@@ -1,7 +1,10 @@
 <launch>
   <arg name="sim" default="false" />
   <arg name="debug" default="false" />
-
+  
+  <arg name="moveit_controller_manager" default="fake" />
+  <arg name="use_gui" default="true" />
+  
   <!-- Remap follow_joint_trajectory -->
   <remap if="$(arg sim)" from="/scaled_pos_joint_traj_controller/follow_joint_trajectory" to="/eff_joint_traj_controller/follow_joint_trajectory"/>
 
@@ -10,4 +13,21 @@
     <arg name="debug" default="$(arg debug)" />
     <arg name="load_robot_description" value="true" />
   </include>
+
+  <group if="$(eval arg('moveit_controller_manager') == 'fake')">
+    <!-- We do not have a real robot connected, so publish fake joint states via a joint_state_publisher
+         MoveIt's fake controller's joint states are considered via the 'source_list' parameter -->
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" unless="$(arg use_gui)">
+      <rosparam param="source_list">[move_group/fake_controller_joint_states]</rosparam>
+    </node>
+    <!-- If desired, a GUI version is available allowing to move the simulated robot around manually
+         This corresponds to moving around the real robot without the use of MoveIt. -->
+    <node name="joint_state_publisher" pkg="joint_state_publisher_gui" type="joint_state_publisher_gui" if="$(arg use_gui)">
+      <rosparam param="source_list">[move_group/fake_controller_joint_states]</rosparam>
+    </node>
+
+    <!-- Given the published joint states, publish tf for the robot links -->
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen" />
+  </group>
+
 </launch>

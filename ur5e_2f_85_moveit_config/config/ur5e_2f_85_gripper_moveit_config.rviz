@@ -9,6 +9,8 @@ Panels:
         - /MotionPlanning1
         - /MotionPlanning1/Planning Request1
         - /MotionPlanning1/Planning Metrics1
+        - /TF1
+        - /TF1/Status1
         - /TF1/Frames1
       Splitter Ratio: 0.5
     Tree Height: 348
@@ -108,11 +110,70 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          left_inner_finger:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_inner_finger_pad:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_inner_knuckle:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_outer_finger:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_outer_knuckle:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_inner_finger:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_inner_finger_pad:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_inner_knuckle:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_outer_finger:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_outer_knuckle:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          robotiq_arg2f_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
           shoulder_link:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
+          tcp_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           tool0:
             Alpha: 1
             Show Axes: false
@@ -205,11 +266,70 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
+          left_inner_finger:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_inner_finger_pad:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_inner_knuckle:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_outer_finger:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_outer_knuckle:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_inner_finger:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_inner_finger_pad:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_inner_knuckle:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_outer_finger:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          right_outer_knuckle:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          robotiq_arg2f_base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
           shoulder_link:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
+          tcp_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
           tool0:
             Alpha: 1
             Show Axes: false
@@ -252,19 +372,27 @@ Visualization Manager:
           Value: false
         flange:
           Value: false
-        forearm_link:
-          Value: false
-        shoulder_link:
-          Value: false
+        left_inner_finger:
+          Value: true
+        left_inner_finger_pad:
+          Value: true
+        left_outer_finger:
+          Value: true
+        left_outer_knuckle:
+          Value: true
+        right_inner_finger:
+          Value: true
+        right_inner_finger_pad:
+          Value: true
+        right_outer_finger:
+          Value: true
+        right_outer_knuckle:
+          Value: true
+        robotiq_arg2f_base_link:
+          Value: true
+        tcp_link:
+          Value: true
         tool0:
-          Value: false
-        tool0_controller:
-          Value: false
-        upper_arm_link:
-          Value: false
-        wrist_1_link:
-          Value: false
-        wrist_2_link:
           Value: false
         wrist_3_link:
           Value: false
@@ -277,25 +405,16 @@ Visualization Manager:
       Tree:
         base_link:
           base:
-            tool0_controller:
-              {}
+            {}
           base_link_inertia:
-            shoulder_link:
-              upper_arm_link:
-                forearm_link:
-                  wrist_1_link:
-                    wrist_2_link:
-                      wrist_3_link:
-                        flange:
-                          tool0:
-                            {}
+            {}
       Update Interval: 0
       Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
     Default Light: true
-    Fixed Frame: base
+    Fixed Frame: base_link
     Frame Rate: 30
   Name: root
   Tools:
@@ -319,7 +438,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 3.4831924438476562
+      Distance: 2.3107049465179443
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -327,17 +446,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.10304486751556396
-        Y: -0.07407442480325699
-        Z: -0.028145503252744675
+        X: -0.264262855052948
+        Y: -0.44093218445777893
+        Z: 0.308445006608963
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.14039836823940277
+      Pitch: -0.039601776748895645
       Target Frame: <Fixed Frame>
-      Yaw: 5.743575096130371
+      Yaw: 0.8003930449485779
     Saved: ~
 Window Geometry:
   Displays:

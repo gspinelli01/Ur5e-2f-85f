@@ -45,7 +45,9 @@ def main():
     
     rate = rospy.Rate(50)
     # get parameters 
-    scale = rospy.get_param("/scale")
+    linear_scale = rospy.get_param("/linear_scale")
+    angular_scale = rospy.get_param("/angular_scale")
+    scale = [linear_scale, angular_scale]
     controller_name = rospy.get_param("/controller_name")
     topic_name = rospy.get_param("/topic_name")
 
@@ -89,5 +91,5 @@ def main():
 
         rate.sleep()
 
-if __name__ == '__main__':   
-     main()
+if __name__ == '__main__':
+    main()

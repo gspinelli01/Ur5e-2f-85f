@@ -1,9 +1,9 @@
 # scale factor for linear and angular velocity
 controller_name: twist_controller
-topic_name: /joy
+topic_name: /status
 linear_scale: 0.07
 angular_scale: 0.1
 
 # set the device port for joy node
-joy_node/dev: /dev/input/js0
-joy_node/autorepeat_rate: 50
+# joy_node/dev: /dev/input/js0
+# joy_node/autorepeat_rate: 50

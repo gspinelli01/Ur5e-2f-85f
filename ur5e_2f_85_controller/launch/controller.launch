@@ -1,0 +1,12 @@
+<launch>
+
+    <!--Run move group-->
+    <include file="$(find ur5e_2f_85_moveit_config)/launch/move_group.launch">
+        <arg name="debug" default="false" />
+        <arg name="load_robot_description" value="false" />
+    </include>
+        
+    <!--Run move group service server-->
+    <node name="move_group_service_server" pkg="ur5e_2f_85_controller" type="move_group_service_server.py" />
+
+</launch>

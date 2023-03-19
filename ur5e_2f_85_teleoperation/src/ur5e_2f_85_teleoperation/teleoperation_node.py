@@ -13,6 +13,7 @@ from controller_manager_msgs.srv import SwitchControllerRequest, SwitchControlle
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import Joy
 from ur5e_teleoperator import UR5eTeleoperator
+from ds4_driver.msg import Status
 
 def main():
 
@@ -71,6 +72,7 @@ def main():
     controller_manager_switch_msg.stop_controllers = ['scaled_pos_joint_traj_controller']
     controller_manager_switch_msg.strictness = 1
     controller_manager_switch_response = controller_manager_switch_srv(controller_manager_switch_msg)
+    
     if controller_manager_switch_response.ok:
         rospy.loginfo(f"{controller_name} started correctly")
     else:
@@ -85,7 +87,8 @@ def main():
             msg = rospy.wait_for_message(topic_name, Twist)
         elif topic_name == "/joy":
             msg = rospy.wait_for_message(topic_name, Joy)
-
+        elif topic_name == "/status":
+            msg = rospy.wait_for_message(topic_name, Status)
         rospy.logdebug(msg)
         ur_teleoperator.send_command(msg)
 

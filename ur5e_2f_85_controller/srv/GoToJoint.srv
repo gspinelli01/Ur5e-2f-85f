@@ -1,0 +1,5 @@
+# Perform a request for going to the desired joint positions
+float32[6] joint_goal_pos
+---
+bool success
+string msg

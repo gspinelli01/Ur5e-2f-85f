@@ -346,5 +346,6 @@ def main():
         "============ Press `Enter` to go the the home position ..."
     )
     movegroup_interface.go_to_joint_state([1.59, -3.08, 2.68, -2.69, 4.63, 0.0435])
+    
 if __name__ == '__main__':
     main()

@@ -7,6 +7,12 @@ from robotiq_2f_gripper_control.baseRobotiq2FGripper import robotiqbaseRobotiq2F
 from robotiq_2f_gripper_control.msg import _Robotiq2FGripper_robot_output  as outputMsg
 from robotiq_2f_gripper_control.msg import _Robotiq2FGripper_robot_input  as inputMsg
 import rospy
+from ur5e_2f_85_controller.msg import *
+from threading import Thread
+
+# import debugpy
+# debugpy.listen(5678)
+# debugpy.wait_for_client()
 
 class Robotiq2f85:
     
@@ -59,7 +65,13 @@ class Robotiq2f85:
     def __init__(self):
 
         self.command_publisher = rospy.Publisher('Robotiq2FGripperRobotOutput', outputMsg.Robotiq2FGripper_robot_output, queue_size=1)
-        
+
+        # run state publisher
+        state_publisher = Thread(target=Robotiq2f85.run_state_publisher, args=(self, 'gripper_state', ))
+
+        rospy.loginfo("Starting gripper state publisher")
+        state_publisher.start()
+
         self._state = {
             # Gripper state
             # Can be reset or active
@@ -107,7 +119,7 @@ class Robotiq2f85:
             self.update_state()
         rospy.loginfo("Activation completed, the gripper is ready")
 
-        
+
     def _clip(self, value, low_threshold, high_threshold):
         if value < low_threshold:
             return low_threshold
@@ -211,7 +223,6 @@ class Robotiq2f85:
             # gripper is open
             self._state['gripper_open'] = True
 
-
     def update_state(self):
         state_msg = rospy.wait_for_message("Robotiq2FGripperRobotInput", inputMsg.Robotiq2FGripper_robot_input)
         self._state_interpreter(state_msg=state_msg)
@@ -278,11 +289,11 @@ class Robotiq2f85:
             self.command_publisher.publish(self.reset())
 
         elif command == 'o':
-            rospy.loginfo("Sending open command to gripper")
+            rospy.logdebug("Sending open command to gripper")
             self.command_publisher.publish(self.open(force=force, speed=speed))
 
         elif command == 'c':
-            rospy.loginfo("Sending close command to gripper")
+            rospy.logdebug("Sending close command to gripper")
             self.command_publisher.publish(self.close(force=force, speed=speed))
 
         elif command == 's':
@@ -298,4 +309,35 @@ class Robotiq2f85:
         self.update_state()
         return self._state
 
-        
+
+    def run_state_publisher(gripper_ref, gripper_state_topic_name):
+        # Create node
+        state_publisher = rospy.Publisher(gripper_state_topic_name, GripperState, queue_size=1)
+        gripper_state = GripperState()
+        seq = 0
+        rate = rospy.Rate(50)
+        while not rospy.is_shutdown():
+            # get the current state
+            state = gripper_ref.get_state()
+            # create header
+            gripper_state.header.stamp = rospy.Time.now()
+            gripper_state.header.seq = seq
+            seq +=1 
+            # fill the int filds
+            gripper_state.state = state['state']
+            gripper_state.activation_state = state['activation_state']
+            gripper_state.go_to_state = state['go_to_state']
+            gripper_state.requested_position_echo = state['requested_position_echo']
+            gripper_state.finger_position = state['finger_position']
+            gripper_state.obj_detection = state['obj_detection']
+            gripper_state.gripper_open = state['gripper_open']
+            # fill the message filds
+            gripper_state.activation_state_msg = state['activation_state_msg']
+            gripper_state.fault_msg = state['fault_msg']
+            gripper_state.go_to_msg = state['go_to_msg']
+            gripper_state.obj_detection_msg = state['obj_detection_msg']
+
+            # publish gripper state
+            state_publisher.publish(gripper_state)
+
+            rate.sleep()

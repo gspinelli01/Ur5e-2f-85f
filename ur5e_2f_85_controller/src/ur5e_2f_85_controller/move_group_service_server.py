@@ -41,6 +41,7 @@ class MoveGroupServiceServer():
 
         self._switch_controller_srv = rospy.ServiceProxy("controller_manager/switch_controller", SwitchController)
 
+
     def all_close(self, goal, actual, tolerance):
         """
         Convenience method for testing if the values in two lists are within a tolerance of each other.
@@ -74,13 +75,18 @@ class MoveGroupServiceServer():
         # check running controller
         controllers_state = self._controller_manager_state_srv.call()
         switch_controller_req = SwitchControllerRequest()
+        controller_to_start = []
+        controller_to_stop = []
         for controller in controllers_state.controller:
             # if pos_joint_traj_controller is stopped then start it
             if (controller.name in start) and controller.state == 'stopped':
-                switch_controller_req.start_controllers = [controller.name]
+                controller_to_start.append(controller.name)
             elif (controller.name in stop) and controller.state == 'running':
-                switch_controller_req.stop_controllers = [controller.name]
-            
+                controller_to_stop.append(controller.name)
+
+        switch_controller_req.strictness = switch_controller_req.BEST_EFFORT
+        switch_controller_req.start_controllers = controller_to_start
+        switch_controller_req.stop_controllers = controller_to_stop
         switch_res = self._switch_controller_srv.call(switch_controller_req)        
         if switch_res.ok:
                 rospy.loginfo("scaled_pos_joint_traj_controller started correctly")
@@ -93,7 +99,6 @@ class MoveGroupServiceServer():
     def go_to_joint(self, request):
         
         if self._start_stop_controllers(start=["scaled_pos_joint_traj_controller"], stop=["twist_controller"]):
-
             # Get the joint values from the group and change some of the values:
             joint_goal = self.move_group.get_current_joint_values()
             joint_goal[0] = request.joint_goal_pos[0]
@@ -102,7 +107,6 @@ class MoveGroupServiceServer():
             joint_goal[3] = request.joint_goal_pos[3]
             joint_goal[4] = request.joint_goal_pos[4]
             joint_goal[5] = request.joint_goal_pos[5]
-
             self.move_group.go(joint_goal, wait=True)
             self.move_group.stop()
 

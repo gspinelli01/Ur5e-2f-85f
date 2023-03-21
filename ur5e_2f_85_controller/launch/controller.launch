@@ -7,6 +7,6 @@
     </include>
         
     <!--Run move group service server-->
-    <node name="move_group_service_server" pkg="ur5e_2f_85_controller" type="move_group_service_server.py" />
+    <node name="move_group_service_server" pkg="ur5e_2f_85_controller" type="move_group_service_server.py" output="screen"/>
 
 </launch>

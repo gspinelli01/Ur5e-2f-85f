@@ -60,22 +60,32 @@ RUN sudo wstool remove  moveit_tutorials  # this is cloned in the next section
 RUN rosdep update
 RUN sudo wstool update -t . && rosdep install -y --from-paths . --ignore-src --rosdistro noetic --os=ubuntu:focal
 
-# Install 
-
 # Clone and build UR-drivers and custom repositories
 WORKDIR ${HOME}/catkin_ws/src
 RUN sudo apt-get remove -y ros-noetic-ros-control
 RUN git clone https://github.com/UniversalRobots/Universal_Robots_ROS_Driver.git
 RUN git clone -b boost https://github.com/UniversalRobots/Universal_Robots_Client_Library.git
 RUN git clone https://github.com/ros-industrial/universal_robot.git
-# RUN git clone https://$GIT_PERSONAL_TOKEN@github.com/ciccio42/robotiq.git
-# RUN git clone https://$GIT_PERSONAL_TOKEN@github.com/ciccio42/Ur5e-2f-85f.git
-# RUN git clone https://$GIT_PERSONAL_TOKEN@github.com/ciccio42/Realsense-Camera-Controller.git
-# Repository dependencies
-
 RUN rosdep install -y --from-paths . --ignore-src --rosdistro noetic --os=ubuntu:focal
 
 # Black list for robotiq packages
 WORKDIR ${HOME}/catkin_ws
-# RUN catkin config --skiplist robotiq_2f_140_gripper_visualization robotiq_2f_c2_gripper_visualization robotiq_3f_gripper_articulated_msgs robotiq_3f_gripper_articulated_gazebo robotiq_3f_gripper_articulated_gazebo_plugins robotiq_3f_gripper_control robotiq_3f_gripper_joint_state_publisher robotiq_3f_gripper_visualization robotiq_3f_rviz robotiq_ft_sensor
 RUN sudo catkin build
+RUN source devel/setup.bash
+
+# Install joy controller
+RUN git config --global http.sslverify false
+WORKDIR ${HOME}/catkin_ws/src
+RUN git clone -b noetic_2f_85 https://$GIT_PERSONAL_TOKEN@github.com/ciccio42/robotiq.git
+#RUN git clone https://$GIT_PERSONAL_TOKEN@github.com/ciccio42/Ur5e-2f-85f.git
+#RUN git clone https://$GIT_PERSONAL_TOKEN@github.com/ciccio42/Realsense-Camera-Controller.git
+
+# Repository dependencies
+# 1. Gripper dependencies
+RUN rosdep install --from-paths . --ignore-src -y
+RUN sudo apt-get install ros-noetic-soem
+WORKDIR ${HOME}/catkin_ws
+RUN catkin config --skiplist robotiq_2f_140_gripper_visualization robotiq_2f_c2_gripper_visualization robotiq_3f_gripper_articulated_msgs robotiq_3f_gripper_articulated_gazebo robotiq_3f_gripper_articulated_gazebo_plugins robotiq_3f_gripper_control robotiq_3f_gripper_joint_state_publisher robotiq_3f_gripper_visualization robotiq_3f_rviz robotiq_ft_sensor
+RUN sudo catkin build
+
+# RUN catkin config --skiplist robotiq_2f_140_gripper_visualization robotiq_2f_c2_gripper_visualization robotiq_3f_gripper_articulated_msgs robotiq_3f_gripper_articulated_gazebo robotiq_3f_gripper_articulated_gazebo_plugins robotiq_3f_gripper_control robotiq_3f_gripper_joint_state_publisher robotiq_3f_gripper_visualization robotiq_3f_rviz robotiq_ft_sensor

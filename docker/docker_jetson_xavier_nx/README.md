@@ -10,8 +10,8 @@ sudo date -s "$(wget -qSO- --max-redirect=0 google.com 2>&1 | grep Date: | cut -
 
 # Run the docker 
 ```
-sudo docker run -it --network="host" --name ur_controller -v /home/mivia/Desktop/frosa/Ur5e-2f-85f/docker/docker_jetson_xavier_nx:/home/mivia/docker_jetson_xavier_nx --rm jetson_xavier_nx 
-sudo docker exec ur_controller /bin/bash
+sudo docker run -it --network="host" --privileged --name ur_controller -v /home/mivia/Desktop/frosa/Ur5e-2f-85f/docker/docker_jetson_xavier_nx:/home/mivia/docker_jetson_xavier_nx --rm jetson_xavier_nx 
+sudo docker exec -it ur_controller /bin/bash
 
 ```bash
 # 1. Run calibration

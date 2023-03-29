@@ -68,16 +68,13 @@ RUN git clone -b boost https://github.com/UniversalRobots/Universal_Robots_Clien
 RUN git clone https://github.com/ros-industrial/universal_robot.git
 RUN rosdep install -y --from-paths . --ignore-src --rosdistro noetic --os=ubuntu:focal
 
-# Black list for robotiq packages
 WORKDIR ${HOME}/catkin_ws
 RUN sudo catkin build
 RUN source devel/setup.bash
 
-# Install joy controller
 RUN git config --global http.sslverify false
 WORKDIR ${HOME}/catkin_ws/src
 RUN git clone -b noetic_2f_85 https://$GIT_PERSONAL_TOKEN@github.com/ciccio42/robotiq.git
-#RUN git clone https://$GIT_PERSONAL_TOKEN@github.com/ciccio42/Ur5e-2f-85f.git
 #RUN git clone https://$GIT_PERSONAL_TOKEN@github.com/ciccio42/Realsense-Camera-Controller.git
 
 # Repository dependencies
@@ -87,5 +84,25 @@ RUN sudo apt-get install ros-noetic-soem
 WORKDIR ${HOME}/catkin_ws
 RUN catkin config --skiplist robotiq_2f_140_gripper_visualization robotiq_2f_c2_gripper_visualization robotiq_3f_gripper_articulated_msgs robotiq_3f_gripper_articulated_gazebo robotiq_3f_gripper_articulated_gazebo_plugins robotiq_3f_gripper_control robotiq_3f_gripper_joint_state_publisher robotiq_3f_gripper_visualization robotiq_3f_rviz robotiq_ft_sensor
 RUN sudo catkin build
+RUN source devel/setup.bash
 
-# RUN catkin config --skiplist robotiq_2f_140_gripper_visualization robotiq_2f_c2_gripper_visualization robotiq_3f_gripper_articulated_msgs robotiq_3f_gripper_articulated_gazebo robotiq_3f_gripper_articulated_gazebo_plugins robotiq_3f_gripper_control robotiq_3f_gripper_joint_state_publisher robotiq_3f_gripper_visualization robotiq_3f_rviz robotiq_ft_sensor
+# 2. Joy dependencies
+WORKDIR ${HOME}/catkin_ws/src
+RUN mkdir ps4_joy_drivers
+WORKDIR ${HOME}/catkin_ws/src/ps4_joy_drivers
+RUN git clone https://github.com/chrippa/ds4drv.git
+WORKDIR ${HOME}/catkin_ws/src/ps4_joy_drivers/ds4drv
+RUN python3 -m pip install --upgrade pip
+RUN sudo python3 setup.py install
+RUN sudo cp udev/50-ds4drv.rules /etc/udev/rules.d/
+RUN sudo /lib/systemd/systemd-udevd --daemon
+RUN sudo /lib/systemd/systemd-udevd --daemon && sudo udevadm control --reload-rules && sudo udevadm trigger
+RUN git clone --branch noetic-devel  https://github.com/naoki-mizuno/ds4_driver.git
+WORKDIR ${HOME}/catkin_ws
+RUN sudo catkin build
+
+# Install custom packages
+WORKDIR ${HOME}/catkin_ws/src
+RUN git clone https://$GIT_PERSONAL_TOKEN@github.com/ciccio42/Ur5e-2f-85f.git
+WORKDIR ${HOME}/catkin_ws
+RUN sudo catkin build

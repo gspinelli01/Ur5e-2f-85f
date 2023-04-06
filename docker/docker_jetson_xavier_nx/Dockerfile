@@ -75,7 +75,6 @@ RUN source devel/setup.bash
 RUN git config --global http.sslverify false
 WORKDIR ${HOME}/catkin_ws/src
 RUN git clone -b noetic_2f_85 https://$GIT_PERSONAL_TOKEN@github.com/ciccio42/robotiq.git
-#RUN git clone https://$GIT_PERSONAL_TOKEN@github.com/ciccio42/Realsense-Camera-Controller.git
 
 # Repository dependencies
 # 1. Gripper dependencies
@@ -101,10 +100,24 @@ RUN git clone --branch noetic-devel  https://github.com/naoki-mizuno/ds4_driver.
 WORKDIR ${HOME}/catkin_ws
 RUN sudo catkin build
 
-# Install custom packages
+# 3. Install Camera dependency
+WORKDIR /home/temp
+RUN sudo wget -q --no-check-certificate https://download.stereolabs.com/zedsdk/4.0/l4t35.2/jetsons
+RUN sudo chmod +x jetsons
+RUN sudo apt install -y zstd
+RUN sudo ./jetsons silent skip_tools && sudo rm -rf /usr/local/zed/resources/* && sudo rm -rf jetsons && sudo rm -rf /var/lib/apt/lists/*
+# This symbolic link is needed to use the streaming features on Jetson inside a container
+RUN sudo ln -sf /usr/lib/aarch64-linux-gnu/tegra/libv4l2.so.0 /usr/lib/aarch64-linux-gnu/libv4l2.so
+
+# # Install custom packages
 WORKDIR ${HOME}/catkin_ws/src
 RUN git clone https://$GIT_PERSONAL_TOKEN@github.com/ciccio42/Ur5e-2f-85f.git
 WORKDIR ${HOME}/catkin_ws
 RUN sudo catkin build
+
+# 4. Install ZED-sdk
+WORKDIR ${HOME}/catkin_ws/src
+RUN git clone https://$GIT_PERSONAL_TOKEN@github.com/ciccio42/ZED-Controller.git
+# RUN sudo catkin build zed_camera_controller
 
 CMD ["/bin/bash", "/home/mivia/docker_jetson_xavier_nx/start.sh"]

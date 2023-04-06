@@ -10,7 +10,7 @@ sudo date -s "$(wget -qSO- --max-redirect=0 google.com 2>&1 | grep Date: | cut -
 
 # Run the docker 
 ```
-sudo docker run -it --rm --network="host" --privileged --name ur_controller -v /home/mivia/Desktop/frosa/Ur5e-2f-85f/docker/docker_jetson_xavier_nx:/home/mivia/docker_jetson_xavier_nx -v /dev:/dev jetson_xavier_nx 
+sudo docker run -it --runtime=nvidia --rm --network="host" --privileged --name ur_controller -v /home/mivia/Desktop/frosa/Ur5e-2f-85f/docker/docker_jetson_xavier_nx:/home/mivia/docker_jetson_xavier_nx -v /dev:/dev jetson_xavier_nx 
 
 sudo docker exec -it ur_controller /bin/bash /home/mivia/docker_jetson_xavier_nx/start.sh
 

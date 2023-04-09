@@ -1,0 +1,106 @@
+<?xml version="1.0" ?>
+<robot name="zed_mini_robot_attach" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+<link name="base_link_camera">
+  <!-- <inertial>
+    <origin xyz="-1.5476685042974257e-05 -0.02386136732440773 -5.922293150306224e-05" rpy="0 0 0"/>
+    <mass value="0.17783575450515327"/>
+    <inertia ixx="4.3e-05" iyy="0.000212" izz="0.00024" ixy="0.0" iyz="0.0" ixz="1e-06"/>
+  </inertial> -->
+  <visual>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://ur5e_2f_85_description/meshes/camera_gripper_attach/base_link.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="silver"/>
+  </visual>
+  <collision>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://ur5e_2f_85_description/meshes/camera_gripper_attach/base_link.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<link name="upper_block_gripper">
+  <!-- <inertial>
+    <origin xyz="6.873021758872151e-06 0.04004139707933998 0.00015051198864749328" rpy="0 0 0"/>
+    <mass value="0.38190262144759973"/>
+    <inertia ixx="0.000193" iyy="0.000296" izz="0.000461" ixy="-0.0" iyz="-0.0" ixz="0.0"/>
+  </inertial> -->
+  <visual>
+    <origin xyz="0.0 -0.0 -0.0" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://ur5e_2f_85_description/meshes/camera_gripper_attach/upper_block_gripper.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="silver"/>
+  </visual>
+  <collision>
+    <origin xyz="0.0 -0.0 -0.0" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://ur5e_2f_85_description/meshes/camera_gripper_attach/upper_block_gripper.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<link name="zed_mini_camera_attach_back_base_with_external_rack">
+  <!-- <inertial>
+    <origin xyz="0.0014104497592884707 0.001293530094571449 -0.00023802164952806335" rpy="0 0 0"/>
+    <mass value="0.26825120546859876"/>
+    <inertia ixx="9.3e-05" iyy="0.000162" izz="0.000231" ixy="-1e-05" iyz="-4e-06" ixz="-0.0"/>
+  </inertial> -->
+  <visual>
+    <origin xyz="-4e-05 -0.08901 -0.0" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://ur5e_2f_85_description/meshes/camera_gripper_attach/zed_mini_camera_attach_back_base_with_external_rack.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="silver"/>
+  </visual>
+  <collision>
+    <origin xyz="-4e-05 -0.08901 -0.0" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://ur5e_2f_85_description/meshes/camera_gripper_attach/zed_mini_camera_attach_back_base_with_external_rack.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<link name="zed_camera">
+  <!-- <inertial>
+    <origin xyz="-0.0014944152543471412 0.01290011562707176 0.0038031028791763346" rpy="0 0 0"/>
+    <mass value="0.4361891515825667"/>
+    <inertia ixx="4.4e-05" iyy="0.000572" izz="0.000572" ixy="-3e-06" iyz="-0.0" ixz="7e-06"/>
+  </inertial> -->
+  <visual>
+    <origin xyz="-0.00804 -0.100964 0.000301" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://ur5e_2f_85_description/meshes/camera_gripper_attach/zed_camera.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="silver"/>
+  </visual>
+  <collision>
+    <origin xyz="-0.00804 -0.100964 0.000301" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="package://ur5e_2f_85_description/meshes/camera_gripper_attach/zed_camera.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<joint name="base_link_camera_attach" type="fixed">
+  <origin xyz="0.0 0.0 0.0" rpy="0 0 0"/>
+  <parent link="base_link_camera"/>
+  <child link="upper_block_gripper"/>
+</joint>
+
+<joint name="camera_attach" type="fixed">
+  <origin xyz="4e-05 0.08901 0.0" rpy="0 0 0"/>
+  <parent link="upper_block_gripper"/>
+  <child link="zed_mini_camera_attach_back_base_with_external_rack"/>
+</joint>
+
+<joint name="camera_base" type="fixed">
+  <origin xyz="0.008 0.011954 -0.000301" rpy="0 0 0"/>
+  <parent link="zed_mini_camera_attach_back_base_with_external_rack"/>
+  <child link="zed_camera"/>
+</joint>
+
+</robot>

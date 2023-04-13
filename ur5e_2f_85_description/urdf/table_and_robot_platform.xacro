@@ -254,13 +254,13 @@
 </joint>
 
 <joint name="table" type="fixed">
-  <origin xyz="0.400 -0.477 0.727" rpy="0 0 0"/>
+  <origin xyz="0.400 -0.477 0.74" rpy="0 0 0"/>
   <parent link="base_link_platform"/>
   <child link="Plane-Table_1"/>
 </joint>
 
 <joint name="robot_base" type="fixed">
-  <origin xyz="0.40 0.165 0.84" rpy="0 0 0"/>
+  <origin xyz="0.38 0.135 0.86" rpy="0 0 0"/>
   <parent link="base_link_platform"/>
   <child link="robot_base_1"/>
 </joint>

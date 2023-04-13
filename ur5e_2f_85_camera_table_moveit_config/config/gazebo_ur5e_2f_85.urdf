@@ -214,14 +214,14 @@
     <inertia ixx="20.623205" iyy="20.623205" izz="41.205537" ixy="-0.0" iyz="0.0" ixz="0.0"/>
   </inertial> -->
         <visual>
-            <origin rpy="0 0 0" xyz="-0.400 0.477 -0.727" />
+            <origin rpy="0 0 0" xyz="-0.400 0.477 -0.74" />
             <geometry>
                 <mesh filename="package://ur5e_2f_85_description/meshes/robot_platform/Plane-Table_1.stl" scale="0.001 0.001 0.001" />
             </geometry>
             <material name="silver" />
         </visual>
         <collision>
-            <origin rpy="0 0 0" xyz="-0.400 0.477 -0.727" />
+            <origin rpy="0 0 0" xyz="-0.400 0.477 -0.74" />
             <geometry>
                 <mesh filename="package://ur5e_2f_85_description/meshes/robot_platform/Plane-Table_1.stl" scale="0.001 0.001 0.001" />
             </geometry>
@@ -239,14 +239,14 @@
     <inertia ixx="0.019419" iyy="0.019473" izz="0.038619" ixy="0.0" iyz="0.0" ixz="-1e-06"/>
   </inertial> -->
         <visual>
-            <origin rpy="0 0 0" xyz="-0.40 -0.165 -0.84" />
+            <origin rpy="0 0 0" xyz="-0.40 -0.135 -0.86" />
             <geometry>
                 <mesh filename="package://ur5e_2f_85_description/meshes/robot_platform/robot_base_1.stl" scale="0.001 0.001 0.001" />
             </geometry>
             <material name="silver" />
         </visual>
         <collision>
-            <origin rpy="0 0 0" xyz="-0.40 -0.165 -0.84" />
+            <origin rpy="0 0 0" xyz="-0.40 -0.135 -0.86" />
             <geometry>
                 <mesh filename="package://ur5e_2f_85_description/meshes/robot_platform/robot_base_1.stl" scale="0.001 0.001 0.001" />
             </geometry>
@@ -293,12 +293,12 @@
         <child link="vertical_back_sx_1" />
     </joint>
     <joint name="table" type="fixed">
-        <origin rpy="0 0 0" xyz="0.400 -0.477 0.727" />
+        <origin rpy="0 0 0" xyz="0.400 -0.477 0.74" />
         <parent link="base_link_platform" />
         <child link="Plane-Table_1" />
     </joint>
     <joint name="robot_base" type="fixed">
-        <origin rpy="0 0 0" xyz="0.40 0.165 0.84" />
+        <origin rpy="0 0 0" xyz="0.40 0.135 0.86" />
         <parent link="base_link_platform" />
         <child link="robot_base_1" />
     </joint>

@@ -82,7 +82,7 @@
             <inertia ixx="0.03" iyy="0.03" izz="0.03" ixy="0.0" ixz="0.0" iyz="0.0" />
         </inertial>
     </link>
-    <link name="table_suport_sx_back_1">
+    <link name="table_support_sx_back_1">
         <!-- <inertial>
     <origin xyz="0.8000000000001714 7.715461911554486e-17 0.08638954121736253" rpy="0 0 0"/>
     <mass value="0.925353982789481"/>
@@ -91,14 +91,14 @@
         <visual>
             <origin rpy="0 0 0" xyz="-0.8 -0.0 -0.0" />
             <geometry>
-                <mesh filename="package://ur5e_2f_85_description/meshes/robot_platform/table_suport_sx_back_1.stl" scale="0.001 0.001 0.001" />
+                <mesh filename="package://ur5e_2f_85_description/meshes/robot_platform/table_support_sx_back_1.stl" scale="0.001 0.001 0.001" />
             </geometry>
             <material name="silver" />
         </visual>
         <collision>
             <origin rpy="0 0 0" xyz="-0.8 -0.0 -0.0" />
             <geometry>
-                <mesh filename="package://ur5e_2f_85_description/meshes/robot_platform/table_suport_sx_back_1.stl" scale="0.001 0.001 0.001" />
+                <mesh filename="package://ur5e_2f_85_description/meshes/robot_platform/table_support_sx_back_1.stl" scale="0.001 0.001 0.001" />
             </geometry>
         </collision>
         <inertial>
@@ -207,7 +207,7 @@
             <inertia ixx="0.03" iyy="0.03" izz="0.03" ixy="0.0" ixz="0.0" iyz="0.0" />
         </inertial>
     </link>
-    <link name="Plane-Table_1">
+    <link name="table_1">
         <!-- <inertial>
     <origin xyz="0.40000000000000385 -0.47699999999999404 0.7112526611221979" rpy="0 0 0"/>
     <mass value="247.23322038149666"/>
@@ -216,14 +216,14 @@
         <visual>
             <origin rpy="0 0 0" xyz="-0.400 0.477 -0.74" />
             <geometry>
-                <mesh filename="package://ur5e_2f_85_description/meshes/robot_platform/Plane-Table_1.stl" scale="0.001 0.001 0.001" />
+                <mesh filename="package://ur5e_2f_85_description/meshes/robot_platform/table_1.stl" scale="0.001 0.001 0.001" />
             </geometry>
             <material name="silver" />
         </visual>
         <collision>
             <origin rpy="0 0 0" xyz="-0.400 0.477 -0.74" />
             <geometry>
-                <mesh filename="package://ur5e_2f_85_description/meshes/robot_platform/Plane-Table_1.stl" scale="0.001 0.001 0.001" />
+                <mesh filename="package://ur5e_2f_85_description/meshes/robot_platform/table_1.stl" scale="0.001 0.001 0.001" />
             </geometry>
         </collision>
         <inertial>
@@ -270,7 +270,7 @@
     <joint name="base_link_back_left_support" type="fixed">
         <origin rpy="0 0 0" xyz="0.8 0.0 0.0" />
         <parent link="base_link_platform" />
-        <child link="table_suport_sx_back_1" />
+        <child link="table_support_sx_back_1" />
     </joint>
     <joint name="vertical_back_right" type="fixed">
         <origin rpy="0 0 0" xyz="0.0 0.0 0.115" />
@@ -289,13 +289,13 @@
     </joint>
     <joint name="vertical_back_left" type="fixed">
         <origin rpy="0 0 0" xyz="0.0 0.0 0.115" />
-        <parent link="table_suport_sx_back_1" />
+        <parent link="table_support_sx_back_1" />
         <child link="vertical_back_sx_1" />
     </joint>
     <joint name="table" type="fixed">
         <origin rpy="0 0 0" xyz="0.400 -0.477 0.74" />
         <parent link="base_link_platform" />
-        <child link="Plane-Table_1" />
+        <child link="table_1" />
     </joint>
     <joint name="robot_base" type="fixed">
         <origin rpy="0 0 0" xyz="0.40 0.135 0.86" />

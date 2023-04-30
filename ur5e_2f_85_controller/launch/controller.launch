@@ -1,7 +1,7 @@
 <launch>
 
     <!--Run move group-->
-    <include file="$(find ur5e_2f_85_moveit_config)/launch/move_group.launch">
+    <include file="$(find ur5e_2f_85_camera_table_moveit_config)/launch/move_group.launch">
         <arg name="debug" default="false" />
         <arg name="load_robot_description" value="false" />
     </include>

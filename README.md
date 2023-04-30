@@ -118,9 +118,13 @@ roslaunch ur_robot_driver ur5e_bringup.launch robot_ip:=192.168.56.101 kinematic
 roslaunch ur5e_2f_85_controller controller.launch 
 
 # 2. Camera 
+roslaunch zed_camera_controller zed_camera_controller.launch 
 
 # 3. Run dataset teleoperation node
 roslaunch ur5e_2f_85_teleoperation ur5e_teleoperation.launch 
+
+# 4. Run dataset collector
+
 
 ```
 

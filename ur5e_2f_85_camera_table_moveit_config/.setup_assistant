@@ -8,4 +8,4 @@ moveit_setup_assistant_config:
   CONFIG:
     author_name: Francesco Rosa
     author_email: frosa@unisa.it
-    generated_timestamp: 1681331866
+    generated_timestamp: 1683098221

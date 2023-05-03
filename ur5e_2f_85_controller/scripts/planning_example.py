@@ -23,7 +23,8 @@ except:  # For Python 2 compatibility
 from std_msgs.msg import String
 from moveit_commander.conversions import pose_to_list
 
-from robotiq_2f_gripper_control.msg import _Robotiq2FGripper_robot_output  as outputMsg
+from robotiq_2f_gripper_control.msg import _Robotiq2FGripper_robot_output as outputMsg
+
 
 def all_close(goal, actual, tolerance):
     """
@@ -54,62 +55,62 @@ def all_close(goal, actual, tolerance):
 
     return True
 
+
 def generate_command_msg(action):
-    
+
     def genCommand(char, command):
-        """Update the command according to the character entered by the user."""    
-            
+        """Update the command according to the character entered by the user."""
+
         if char == 'a':
-            command = outputMsg.Robotiq2FGripper_robot_output();
+            command = outputMsg.Robotiq2FGripper_robot_output()
             command.rACT = 1
             command.rGTO = 1
-            command.rSP  = 255
-            command.rFR  = 150
+            command.rSP = 255
+            command.rFR = 150
 
         if char == 'r':
-            command = outputMsg.Robotiq2FGripper_robot_output();
+            command = outputMsg.Robotiq2FGripper_robot_output()
             command.rACT = 0
 
         if char == 'c':
             command.rACT = 1
             command.rGTO = 1
-            command.rSP  = 255
-            command.rFR  = 150
+            command.rSP = 255
+            command.rFR = 150
             command.rPR = 255
 
         if char == 'o':
             command.rACT = 1
             command.rGTO = 1
-            command.rSP  = 255
-            command.rFR  = 150
-            command.rPR = 0   
+            command.rSP = 255
+            command.rFR = 150
+            command.rPR = 0
 
-        #If the command entered is a int, assign this value to rPRA
-        try: 
+        # If the command entered is a int, assign this value to rPRA
+        try:
             command.rPR = int(char)
             if command.rPR > 255:
                 command.rPR = 255
             if command.rPR < 0:
                 command.rPR = 0
         except ValueError:
-            pass                    
-            
+            pass
+
         if char == 'f':
             command.rSP += 25
             if command.rSP > 255:
                 command.rSP = 255
-                
+
         if char == 'l':
             command.rSP -= 25
             if command.rSP < 0:
                 command.rSP = 0
 
-                
         if char == 'i':
             command.rFR += 25
             if command.rFR > 255:
                 command.rFR = 255
-                
+
         if char == 'd':
             command.rFR -= 25
             if command.rFR < 0:
@@ -119,9 +120,10 @@ def generate_command_msg(action):
 
     command = outputMsg.Robotiq2FGripper_robot_output()
     # generate command based on the required action
-    command = genCommand(action, command)     
+    command = genCommand(action, command)
     rospy.loginfo(f"\n{command}")
     return command
+
 
 class MoveGroupPythonInterfaceTutorial(object):
     """MoveGroupPythonInterfaceTutorial"""
@@ -129,44 +131,44 @@ class MoveGroupPythonInterfaceTutorial(object):
     def __init__(self):
         super(MoveGroupPythonInterfaceTutorial, self).__init__()
 
-        ## BEGIN_SUB_TUTORIAL setup
+        # BEGIN_SUB_TUTORIAL setup
         ##
-        ## First initialize `moveit_commander`_ and a `rospy`_ node:
+        # First initialize `moveit_commander`_ and a `rospy`_ node:
         moveit_commander.roscpp_initialize(sys.argv)
         rospy.init_node("planning_example_node", anonymous=True)
 
-        ## Instantiate a `RobotCommander`_ object. Provides information such as the robot's
-        ## kinematic model and the robot's current joint states
+        # Instantiate a `RobotCommander`_ object. Provides information such as the robot's
+        # kinematic model and the robot's current joint states
         robot = moveit_commander.RobotCommander()
 
-        ## Instantiate a `PlanningSceneInterface`_ object.  This provides a remote interface
-        ## for getting, setting, and updating the robot's internal understanding of the
-        ## surrounding world:
+        # Instantiate a `PlanningSceneInterface`_ object.  This provides a remote interface
+        # for getting, setting, and updating the robot's internal understanding of the
+        # surrounding world:
         scene = moveit_commander.PlanningSceneInterface()
 
-        ## Instantiate a `MoveGroupCommander`_ object.  This object is an interface
-        ## to a planning group (group of joints).  In this tutorial the group is the primary
-        ## arm joints in the Panda robot, so we set the group's name to "panda_arm".
-        ## If you are using a different robot, change this value to the name of your robot
-        ## arm planning group.
-        ## This interface can be used to plan and execute motions:
+        # Instantiate a `MoveGroupCommander`_ object.  This object is an interface
+        # to a planning group (group of joints).  In this tutorial the group is the primary
+        # arm joints in the Panda robot, so we set the group's name to "panda_arm".
+        # If you are using a different robot, change this value to the name of your robot
+        # arm planning group.
+        # This interface can be used to plan and execute motions:
         group_name = "tcp_group"
         move_group = moveit_commander.MoveGroupCommander(group_name)
-        
-        ## Create a `DisplayTrajectory`_ ROS publisher which is used to display
-        ## trajectories in Rviz:
+
+        # Create a `DisplayTrajectory`_ ROS publisher which is used to display
+        # trajectories in Rviz:
         display_trajectory_publisher = rospy.Publisher(
             "/move_group/display_planned_path",
             moveit_msgs.msg.DisplayTrajectory,
             queue_size=20,
         )
 
-        ## END_SUB_TUTORIAL
+        # END_SUB_TUTORIAL
 
-        ## BEGIN_SUB_TUTORIAL basic_info
+        # BEGIN_SUB_TUTORIAL basic_info
         ##
-        ## Getting Basic Information
-        ## ^^^^^^^^^^^^^^^^^^^^^^^^^
+        # Getting Basic Information
+        # ^^^^^^^^^^^^^^^^^^^^^^^^^
         # We can get the name of the reference frame for this robot:
         planning_frame = move_group.get_planning_frame()
         print("============ Planning frame: %s" % planning_frame)
@@ -184,7 +186,7 @@ class MoveGroupPythonInterfaceTutorial(object):
         print("============ Printing robot state")
         print(robot.get_current_state())
         print("")
-        ## END_SUB_TUTORIAL
+        # END_SUB_TUTORIAL
 
         # Misc variables
         self.box_name = ""
@@ -202,13 +204,13 @@ class MoveGroupPythonInterfaceTutorial(object):
         # reason not to.
         move_group = self.move_group
 
-        ## BEGIN_SUB_TUTORIAL plan_to_joint_state
+        # BEGIN_SUB_TUTORIAL plan_to_joint_state
         ##
-        ## Planning to a Joint Goal
-        ## ^^^^^^^^^^^^^^^^^^^^^^^^
-        ## The Panda's zero configuration is at a `singularity <https://www.quora.com/Robotics-What-is-meant-by-kinematic-singularity>`_, so the first
-        ## thing we want to do is move it to a slightly better configuration.
-        ## We use the constant `tau = 2*pi <https://en.wikipedia.org/wiki/Turn_(angle)#Tau_proposals>`_ for convenience:
+        # Planning to a Joint Goal
+        # ^^^^^^^^^^^^^^^^^^^^^^^^
+        # The Panda's zero configuration is at a `singularity <https://www.quora.com/Robotics-What-is-meant-by-kinematic-singularity>`_, so the first
+        # thing we want to do is move it to a slightly better configuration.
+        # We use the constant `tau = 2*pi <https://en.wikipedia.org/wiki/Turn_(angle)#Tau_proposals>`_ for convenience:
         # We get the joint values from the group and change some of the values:
         joint_goal = move_group.get_current_joint_values()
         joint_goal[0] = joint_goal_pos[0]
@@ -225,7 +227,7 @@ class MoveGroupPythonInterfaceTutorial(object):
         # Calling ``stop()`` ensures that there is no residual movement
         move_group.stop()
 
-        ## END_SUB_TUTORIAL
+        # END_SUB_TUTORIAL
 
         # For testing:
         current_joints = move_group.get_current_joint_values()
@@ -237,12 +239,12 @@ class MoveGroupPythonInterfaceTutorial(object):
         # reason not to.
         move_group = self.move_group
 
-        ## BEGIN_SUB_TUTORIAL plan_to_pose
+        # BEGIN_SUB_TUTORIAL plan_to_pose
         ##
-        ## Planning to a Pose Goal
-        ## ^^^^^^^^^^^^^^^^^^^^^^^
-        ## We can plan a motion for this group to a desired pose for the
-        ## end-effector:
+        # Planning to a Pose Goal
+        # ^^^^^^^^^^^^^^^^^^^^^^^
+        # We can plan a motion for this group to a desired pose for the
+        # end-effector:
         pose_goal = geometry_msgs.msg.Pose()
         pose_goal.orientation.x = orientation[0]
         pose_goal.orientation.y = orientation[1]
@@ -254,7 +256,7 @@ class MoveGroupPythonInterfaceTutorial(object):
 
         move_group.set_pose_target(pose_goal)
 
-        ## Now, we call the planner to compute the plan and execute it.
+        # Now, we call the planner to compute the plan and execute it.
         # `go()` returns a boolean indicating whether the planning and execution was successful.
         success = move_group.go(wait=True)
         # Calling `stop()` ensures that there is no residual movement
@@ -263,7 +265,7 @@ class MoveGroupPythonInterfaceTutorial(object):
         # Note: there is no equivalent function for clear_joint_value_targets().
         move_group.clear_pose_targets()
 
-        ## END_SUB_TUTORIAL
+        # END_SUB_TUTORIAL
 
         # For testing:
         # Note that since this section of code will not be included in the tutorials
@@ -284,18 +286,21 @@ def main():
         "============ Press `Enter` to begin the tutorial by setting up the moveit_commander ..."
     )
     movegroup_interface = MoveGroupPythonInterfaceTutorial()
-    pub = rospy.Publisher('Robotiq2FGripperRobotOutput', outputMsg.Robotiq2FGripper_robot_output)
+    pub = rospy.Publisher('Robotiq2FGripperRobotOutput',
+                          outputMsg.Robotiq2FGripper_robot_output)
     goal_position = []
     goal_orientation = []
 
     input(
         "============ Press `Enter` to go the the home position ..."
     )
-    movegroup_interface.go_to_joint_state([1.59, -3.08, 2.68, -2.69, 4.63, 0.0435])
+    movegroup_interface.go_to_joint_state(
+        [1.59, -3.08, 2.68, -2.69, 4.63, 0.0435])
     input(
         "============ Press `Enter` to go the the start position ..."
     )
-    movegroup_interface.go_to_joint_state([1.59, -2.4342, 2.4533, -1.6695, 4.63, 0.0435])
+    movegroup_interface.go_to_joint_state(
+        [1.59, -2.4342, 2.4533, -1.6695, 4.63, 0.0435])
 
     input(
         "============ Press `Enter` to go the the activate the gripper ..."
@@ -313,9 +318,10 @@ def main():
     input(
         "============ Press `Enter` to move the robot to left ..."
     )
-    current_tcp_pose = movegroup_interface.move_group.get_current_pose(end_effector_link = movegroup_interface.move_group.get_end_effector_link())
+    current_tcp_pose = movegroup_interface.move_group.get_current_pose(
+        end_effector_link=movegroup_interface.move_group.get_end_effector_link())
     rospy.loginfo(f"TCP pose:\n{current_tcp_pose}")
-    
+
     goal_position.append(current_tcp_pose.pose.position.x-0.10)
     goal_position.append(current_tcp_pose.pose.position.y)
     goal_position.append(current_tcp_pose.pose.position.z)
@@ -329,9 +335,10 @@ def main():
     input(
         "============ Press `Enter` to move the robot to right ..."
     )
-    current_tcp_pose = movegroup_interface.move_group.get_current_pose(end_effector_link = movegroup_interface.move_group.get_end_effector_link())
+    current_tcp_pose = movegroup_interface.move_group.get_current_pose(
+        end_effector_link=movegroup_interface.move_group.get_end_effector_link())
     rospy.loginfo(f"TCP pose:\n{current_tcp_pose}")
-    
+
     goal_position = []
     goal_orientation = []
     goal_position.append(current_tcp_pose.pose.position.x+0.10)
@@ -345,7 +352,9 @@ def main():
     input(
         "============ Press `Enter` to go the the home position ..."
     )
-    movegroup_interface.go_to_joint_state([1.59, -3.08, 2.68, -2.69, 4.63, 0.0435])
-    
+    movegroup_interface.go_to_joint_state(
+        [1.59, -3.08, 2.68, -2.69, 4.63, 0.0435])
+
+
 if __name__ == '__main__':
     main()

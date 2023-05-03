@@ -2,7 +2,7 @@
   <arg name="sim" default="false" />
   <arg name="debug" default="false" />
   
-  <arg name="moveit_controller_manager" default="fake" />
+  <arg name="moveit_controller_manager" default="real" />
   <arg name="use_gui" default="true" />
   
   <!-- Remap follow_joint_trajectory -->
@@ -11,7 +11,7 @@
   <!-- Launch moveit -->
   <include file="$(find ur5e_2f_85_moveit_config)/launch/move_group.launch">
     <arg name="debug" default="$(arg debug)" />
-    <arg name="load_robot_description" value="true" />
+    <arg name="load_robot_description" value="false" />
   </include>
 
   <group if="$(eval arg('moveit_controller_manager') == 'fake')">

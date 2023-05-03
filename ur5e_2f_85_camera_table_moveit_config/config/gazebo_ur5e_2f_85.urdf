@@ -209,9 +209,9 @@
     </link>
     <link name="table_1">
         <!-- <inertial>
-    <origin xyz="0.40000000000000385 -0.47699999999999404 0.7112526611221979" rpy="0 0 0"/>
-    <mass value="247.23322038149666"/>
-    <inertia ixx="20.623205" iyy="20.623205" izz="41.205537" ixy="-0.0" iyz="0.0" ixz="0.0"/>
+    <origin xyz="0.40000000000000147 -0.4769999999999962 0.7212526611221979" rpy="0 0 0"/>
+    <mass value="404.2332203814961"/>
+    <inertia ixx="33.775427" iyy="33.775427" izz="67.372203" ixy="-0.0" iyz="0.0" ixz="-0.0"/>
   </inertial> -->
         <visual>
             <origin rpy="0 0 0" xyz="-0.400 0.477 -0.74" />
@@ -234,19 +234,19 @@
     </link>
     <link name="robot_base_1">
         <!-- <inertial>
-    <origin xyz="0.40003435984289154 0.1650000000000009 0.8252146550277948" rpy="0 0 0"/>
+    <origin xyz="0.4000343598428915 0.1650000000000009 0.8452146550277948" rpy="0 0 0"/>
     <mass value="4.5478768461232075"/>
     <inertia ixx="0.019419" iyy="0.019473" izz="0.038619" ixy="0.0" iyz="0.0" ixz="-1e-06"/>
   </inertial> -->
         <visual>
-            <origin rpy="0 0 0" xyz="-0.40 -0.135 -0.86" />
+            <origin rpy="0 0 0" xyz="-0.40 -0.165 -0.86" />
             <geometry>
                 <mesh filename="package://ur5e_2f_85_description/meshes/robot_platform/robot_base_1.stl" scale="0.001 0.001 0.001" />
             </geometry>
             <material name="silver" />
         </visual>
         <collision>
-            <origin rpy="0 0 0" xyz="-0.40 -0.135 -0.86" />
+            <origin rpy="0 0 0" xyz="-0.40 -0.165 -0.86" />
             <geometry>
                 <mesh filename="package://ur5e_2f_85_description/meshes/robot_platform/robot_base_1.stl" scale="0.001 0.001 0.001" />
             </geometry>
@@ -298,7 +298,7 @@
         <child link="table_1" />
     </joint>
     <joint name="robot_base" type="fixed">
-        <origin rpy="0 0 0" xyz="0.40 0.135 0.86" />
+        <origin rpy="0 0 0" xyz="0.38 0.135 0.86" />
         <parent link="base_link_platform" />
         <child link="robot_base_1" />
     </joint>
@@ -479,7 +479,7 @@
         </joint>
         <actuator name="shoulder_pan_motor">
             <mechanicalReduction>1</mechanicalReduction>
-            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+            <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
         </actuator>
     </transmission>
     <transmission name="shoulder_lift_trans">
@@ -489,7 +489,7 @@
         </joint>
         <actuator name="shoulder_lift_motor">
             <mechanicalReduction>1</mechanicalReduction>
-            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+            <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
         </actuator>
     </transmission>
     <transmission name="elbow_trans">
@@ -499,7 +499,7 @@
         </joint>
         <actuator name="elbow_motor">
             <mechanicalReduction>1</mechanicalReduction>
-            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+            <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
         </actuator>
     </transmission>
     <transmission name="wrist_1_trans">
@@ -509,7 +509,7 @@
         </joint>
         <actuator name="wrist_1_motor">
             <mechanicalReduction>1</mechanicalReduction>
-            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+            <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
         </actuator>
     </transmission>
     <transmission name="wrist_2_trans">
@@ -519,7 +519,7 @@
         </joint>
         <actuator name="wrist_2_motor">
             <mechanicalReduction>1</mechanicalReduction>
-            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+            <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
         </actuator>
     </transmission>
     <transmission name="wrist_3_trans">
@@ -529,7 +529,7 @@
         </joint>
         <actuator name="wrist_3_motor">
             <mechanicalReduction>1</mechanicalReduction>
-            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+            <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
         </actuator>
     </transmission>
     <!-- links: main serial chain -->

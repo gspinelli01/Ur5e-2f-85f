@@ -5,12 +5,12 @@ SHELL ["/bin/bash", "-c"]
 RUN apt-get update && apt-get install -y --no-install-recommends apt-utils
 RUN apt-get -y install git cmake ros-noetic-catkin python3-catkin-tools python3-setuptools libgtest-dev build-essential
 RUN apt-get update && apt-get install -y \
- wget \
- git \
- bash-completion \
- build-essential \
- sudo \ 
- && rm -rf /var/lib/apt/lists/*
+    wget \
+    git \
+    bash-completion \
+    build-essential \
+    sudo \ 
+    && rm -rf /var/lib/apt/lists/*
 RUN source /opt/ros/noetic/setup.bash
 
 # Now create the same user as the host itself
@@ -53,7 +53,6 @@ RUN source devel/setup.bash
 
 # Install moveit
 WORKDIR ${HOME}/catkin_ws/src/moveit
-RUN sudo apt-get remove -y opencv-libs opencv-dev
 RUN sudo wstool init .
 RUN sudo wstool merge -t . https://raw.githubusercontent.com/ros-planning/moveit/master/moveit.rosinstall
 RUN sudo wstool remove  moveit_tutorials  # this is cloned in the next section

@@ -10,8 +10,9 @@ from ur5e_2f_85_controller.srv import GoToJoint, GoToJointResponse
 from math import pi, tau, dist, fabs, cos
 from controller_manager_msgs.srv import ListControllers, SwitchController, SwitchControllerRequest
 
+
 class MoveGroupServiceServer():
-    
+
     def __init__(self, group_name):
         super(MoveGroupServiceServer, self).__init__()
 
@@ -35,12 +36,14 @@ class MoveGroupServiceServer():
         # MoveGroupCommander
         self.move_group = moveit_commander.MoveGroupCommander(group_name)
 
-        self.go_to_joint_srv_server = rospy.Service("/go_to_joint", GoToJoint, self.go_to_joint)
+        self.go_to_joint_srv_server = rospy.Service(
+            "/go_to_joint", GoToJoint, self.go_to_joint)
 
-        self._controller_manager_state_srv = rospy.ServiceProxy("/controller_manager/list_controllers", ListControllers)
+        self._controller_manager_state_srv = rospy.ServiceProxy(
+            "/controller_manager/list_controllers", ListControllers)
 
-        self._switch_controller_srv = rospy.ServiceProxy("controller_manager/switch_controller", SwitchController)
-
+        self._switch_controller_srv = rospy.ServiceProxy(
+            "controller_manager/switch_controller", SwitchController)
 
     def all_close(self, goal, actual, tolerance):
         """
@@ -87,17 +90,16 @@ class MoveGroupServiceServer():
         switch_controller_req.strictness = switch_controller_req.BEST_EFFORT
         switch_controller_req.start_controllers = controller_to_start
         switch_controller_req.stop_controllers = controller_to_stop
-        switch_res = self._switch_controller_srv.call(switch_controller_req)        
+        switch_res = self._switch_controller_srv.call(switch_controller_req)
         if switch_res.ok:
-                rospy.loginfo("scaled_pos_joint_traj_controller started correctly")
-                return switch_res.ok
+            rospy.loginfo("scaled_pos_joint_traj_controller started correctly")
+            return switch_res.ok
         else:
-                rospy.logerr("scaled_pos_joint_traj_controller not started")
-                return switch_res.ok
-
+            rospy.logerr("scaled_pos_joint_traj_controller not started")
+            return switch_res.ok
 
     def go_to_joint(self, request):
-        
+        stop_controller = False
         if self._start_stop_controllers(start=["scaled_pos_joint_traj_controller"], stop=["twist_controller"]):
             # Get the joint values from the group and change some of the values:
             joint_goal = self.move_group.get_current_joint_values()
@@ -112,21 +114,25 @@ class MoveGroupServiceServer():
 
             # check the execution results
             current_joints = self.move_group.get_current_joint_values()
-            success=self.all_close(joint_goal, current_joints, 0.01)
+            success = self.all_close(joint_goal, current_joints, 0.01)
             if success:
-                response = GoToJointResponse(success=success, msg="Robot in desired position")
+                response = GoToJointResponse(
+                    success=success, msg="Robot in desired position")
             else:
-                response = GoToJointResponse(success=success, msg="Robot not in desired position")
+                response = GoToJointResponse(
+                    success=success, msg="Robot not in desired position")
 
-            self._start_stop_controllers(start=["twist_controller"], stop=["scaled_pos_joint_traj_controller"])
+            if stop_controller:
+                self._start_stop_controllers(start=["twist_controller"], stop=[
+                    "scaled_pos_joint_traj_controller"])
             return response
         else:
             rospy.logerr("scaled_pos_joint_traj_controller not started")
             return GoToJointResponse(success=False, msg="scaled_pos_joint_traj_controller not started")
-    
+
 
 if __name__ == '__main__':
-    
+
     rospy.init_node("move_group_service_server", anonymous=True)
     move_group_service_server = MoveGroupServiceServer(group_name="tcp_group")
     rospy.spin()

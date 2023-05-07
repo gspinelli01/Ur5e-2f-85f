@@ -13,6 +13,13 @@ from torchvision.transforms import ToTensor, Normalize
 
 class MosaicController(ModelControllerInterface):
 
+    ACTION_RANGES = [[-0.35,  0.25],
+                     [-0.30,  0.30],
+                     [0.60,  1.20],
+                     [-3.14,  3.14911766],
+                     [-3.14911766, 3.14911766],
+                     [-3.14911766,  3.14911766]]
+
     def __init__(self,
                  conf_file_path: str,
                  model_file_path: str,
@@ -118,6 +125,13 @@ class MosaicController(ModelControllerInterface):
 
         obs = Normalize(mean=[0.485, 0.456, 0.406],
                         std=[0.229, 0.224, 0.225])(obs)
+        return obs
+
+    def _denormalize_action(action):
+        action = np.clip(action.copy(), -1, 1)
+        for d in range(action_ranges.shape[0]):
+            action[d] = (0.5 * (action[d] + 1) *
+                         (action_ranges[d, 1] - action_ranges[d, 0])) + action_ranges[d, 0]
 
     def post_process_output(self, action: np.array):
         """Perform post-process on generated output
@@ -126,7 +140,7 @@ class MosaicController(ModelControllerInterface):
             action (np.array): numpy array representing the normalized  action
         """
 
-        pass
+        return self._denormalize_action(action)
 
     def get_action(self, obs: np.array, robot_state: np.array):
         """_summary_

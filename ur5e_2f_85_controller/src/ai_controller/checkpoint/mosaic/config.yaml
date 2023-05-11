@@ -159,24 +159,25 @@ tasks_cfgs:
     traj_per_subtask: 100
     demo_per_subtask: 100
 debug: false
-EXPERT_DATA: /raid/home/miviacluster/data/frosa/multitask_dataset/multitask_dataset_baseline
-save_path: /home/ciccio/Desktop/multi_task_lfd/Multi-Task-LFD-Framework/mosaic-baseline-sav-folder/baseline-1
-wandb_log: false
-project_name: target_obj_detector_embedding_backbone_no_freezed_modified
+EXPERT_DATA: /home/frosa_loc/multitask_dataset_ur/multitask_dataset_language_command
+save_path: /media/ciccio/Sandisk/mosaic-baseline-sav-folder/mosaic-baseline-sav-folder/ur-baseline
+wandb_log: true
+project_name: ur_mosaic_baseline_no_obj_detector
 log_freq: 1
 save_optim: true
 resume: false
 resume_path: None
+resume_step: -1
 device: 0
-exp_name: 1Task-Pick-Place-Target-Object-Embedding-No-Freezed-Modified-Batch128-1gpu-Attn2ly128-Act2ly256mix4-actCat-simclr128x512
+exp_name: 1Task-Pick-Place-Mosaic-No-Obj-Detector-Ur5e-Batch128
 epochs: 250
 bsize: 128
 vsize: 128
-optimizer: Adam
+optimizer: AdamW
 task_names: pick_place
 inv_mul: 1
 bc_mul: 1
-pnt_mul: 0
+pnt_mul: 0.1
 rep_muls:
   img_byol: ${byol.mul_pre}
   attn_byol: ${byol.mul_pos}
@@ -188,7 +189,7 @@ rep_muls:
 train_cfg:
   batch_size: ${bsize}
   val_size: ${vsize}
-  lr: 0.001
+  lr: 0.0001
   optimizer: ${optimizer}
   epochs: ${epochs}
   log_freq: ${log_freq}
@@ -202,10 +203,10 @@ train_cfg:
   sampler: ${samplers}
   target_update_freq: 5
   early_stopping: ${early_stopping_cfg}
-  lr_schedule:
-    type: ReduceLROnPlateau
+  weight_decay: 0.05
+  lr_schedule: None
 early_stopping_cfg:
-  patience: 10
+  patience: 20
   delta: 0.001
 tasks:
 - name: pick_place
@@ -252,7 +253,7 @@ samplers:
 val_skip: false
 train_skip: true
 dataset_cfg:
-  _target_: mosaic.datasets.multi_task_datasets.MultiTaskPairedDataset
+  _target_: multi_task_il.datasets.multi_task_datasets.MultiTaskPairedDataset
   root_dir: ${EXPERT_DATA}/
   mode: ???
   tasks_spec: ${tasks}
@@ -264,7 +265,22 @@ dataset_cfg:
   - 0.1
   demo_T: 4
   obs_T: 7
-  take_first_frame: ${mosaic.concat_target_obj_embedding}
+  normalize_action: true
+  normalization_ranges:
+  - - -0.35
+    - 0.25
+  - - -0.3
+    - 0.3
+  - - 0.6
+    - 1.2
+  - - -3.14
+    - 3.14911766
+  - - -3.14911766
+    - 3.14911766
+  - - -3.14911766
+    - 3.14911766
+  n_action_bin: 256
+  take_first_frame: ${policy.concat_target_obj_embedding}
   data_augs: ${augs}
   non_sequential: false
   crop_twice: false
@@ -273,9 +289,11 @@ dataset_cfg:
   - gripper_qpos
   allow_val_skip: ${val_skip}
   allow_train_skip: ${train_skip}
-  use_strong_augs: false
+  use_strong_augs: true
   select_random_frames: true
   compute_obj_distribution: true
+  agent_name: ur5e
+  demo_name: panda
 augs:
   strong_jitter: 0.01
   weak_jitter: 0.01
@@ -325,17 +343,17 @@ byol:
   mul_demo: 0
 policy: ${mosaic}
 mosaic:
-  _target_: mosaic.models.mt_rep.VideoImitation
-  load_target_obj_detector: true
-  target_obj_detector_step: 22275
-  target_obj_detector_path: /home/ciccio/Desktop/catkin_ws/src/Ur5e-2f-85f/ur5e_2f_85_controller/src/ai_controller/checkpoint/mosaic/target_obj
+  _target_: multi_task_il.models.mt_rep.VideoImitation
+  load_target_obj_detector: false
+  target_obj_detector_step: 17204
+  target_obj_detector_path: /home/frosa_loc/Multi-Task-LFD-Framework/mosaic-baseline-sav-folder/baseline-1/1Task-Pick-Place-Target-Obj-Random-Frames-Batch128-1gpu-Attn2ly128-Act2ly256mix4-actCat
   freeze_target_obj_detector: false
-  remove_class_layers: true
-  load_contrastive: false
-  concat_target_obj_embedding: true
+  remove_class_layers: false
+  load_contrastive: true
+  concat_target_obj_embedding: false
   latent_dim: 40
   sdim: 8
-  concat_state: true
+  concat_state: false
   height: ${train_cfg.dataset.height}
   width: ${train_cfg.dataset.width}
   demo_T: ${train_cfg.dataset.demo_T}
@@ -353,7 +371,7 @@ actions:
   n_layers: 2
   out_dim: 256
   hidden_dim: 128
-  adim: 8
+  adim: 7
   n_mixtures: 4
   const_var: false
   sep_var: true
@@ -377,7 +395,7 @@ attn:
     drop_dim: 3
     pretrained: true
 tosil:
-  _target_: mosaic.models.baselines.InverseImitation
+  _target_: multi_task_il.models.baselines.InverseImitation
   latent_dim: 40
   lstm_config:
     out_dim: 32
@@ -389,12 +407,13 @@ tosil:
     n_st_attn: 2
     use_pe: true
     attn_heads: 4
-  n_mixtures: 2
+  n_mixtures: 4
   const_var: true
   concat_state: false
   pred_point: true
+  concat_target_obj_embedding: false
 lstm:
-  _target_: mosaic.models.baselines.InverseImitation
+  _target_: multi_task_il.models.baselines.InverseImitation
   latent_dim: 40
   lstm_config:
     out_dim: 32
@@ -412,7 +431,7 @@ lstm:
   transformer_feat: false
 use_daml: false
 daml:
-  _target_: mosaic.models.baselines.DAMLNetwork
+  _target_: multi_task_il.models.baselines.DAMLNetwork
   n_final_convs: resnet
   T_context: 4
   maml_lr: 0.1

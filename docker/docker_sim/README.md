@@ -41,6 +41,6 @@ roslaunch ur5e_moveit_config moveit_rviz.launch config:=true
 ```
 
 ``` bash
-roslaunch ur_robot_driver ur5e_bringup.launch robot_ip:=192.168.56.101 kinematics_config:=/home/ciccio/.ros/robot_calibration.yaml robot_description_file:=/home/ciccio/Desktop/catkin_ws/src/Ur5e-2f-85f/ur5e_2f_85_description/launch/load_ur5e_2f_85.launch
+roslaunch ur_robot_driver ur5e_bringup.launch robot_ip:=192.168.56.101 kinematics_config:="/home/ciccio/.ros/sim_robot_calibration.yaml" robot_description_file:="/home/ciccio/Desktop/catkin_ws/src/Ur5e-2f-85f/ur5e_2f_85_description/launch/load_ur5e_2f_85.launch"
 ```
 

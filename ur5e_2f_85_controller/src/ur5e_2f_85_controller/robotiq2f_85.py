@@ -3,20 +3,22 @@
 # This class implements the main methods for controlling the Robotiq2f85 gripper
 #
 ####
-from robotiq_2f_gripper_control.baseRobotiq2FGripper import robotiqbaseRobotiq2FGripper
-from robotiq_2f_gripper_control.msg import _Robotiq2FGripper_robot_output  as outputMsg
-from robotiq_2f_gripper_control.msg import _Robotiq2FGripper_robot_input  as inputMsg
-import rospy
-from ur5e_2f_85_controller.msg import *
 from threading import Thread
+import ur5e_2f_85_controller
+import rospy
+from robotiq_2f_gripper_control.msg import _Robotiq2FGripper_robot_input as inputMsg
+from robotiq_2f_gripper_control.msg import _Robotiq2FGripper_robot_output as outputMsg
+from robotiq_2f_gripper_control.baseRobotiq2FGripper import robotiqbaseRobotiq2FGripper
+
 
 # import debugpy
 # debugpy.listen(5678)
 # debugpy.wait_for_client()
 
+
 class Robotiq2f85:
-    
-    # used for initialization, when values are not defined 
+
+    # used for initialization, when values are not defined
     NOT_DEFINED = -1
 
     # list of gripper state
@@ -24,7 +26,7 @@ class Robotiq2f85:
     ACTIVATE = 1
 
     # list of error messages
-    NO_FAULT_BIT = 1 
+    NO_FAULT_BIT = 1
     FAULT_BIT = 0
     NO_FAULT = "No fault"
     ACTION_DELAYES = "Action delayed, activation (reactivation) must be completed prior to perfmoring the action"
@@ -34,9 +36,9 @@ class Robotiq2f85:
     MINIMUM_OPERATING_VOLTAGE = "Under minimum operating voltage"
     AUTOMATIC_RELEASE_PROGRESS = "Automatic release in progress"
     INTERNAL_FAULT = "Internal fault; contact support@robotiq.com"
-    ACTIVATION_FAULT = "Activation fault, verify that no interference or other error occurred" 
+    ACTIVATION_FAULT = "Activation fault, verify that no interference or other error occurred"
     OVERCURRENT = "Overcurrent triggered"
-    AUTOMATIC_RELEASE_COMPLETED= "Automatic release completed" 
+    AUTOMATIC_RELEASE_COMPLETED = "Automatic release completed"
 
     # Moving state
     STAND_BY = 0
@@ -58,16 +60,18 @@ class Robotiq2f85:
     STOPPED_WHILE_OPENING = 1
     STOPPED_WHILE_OPENING_MSG = 'Fingers have stopped due to a contact while opening'
     STOPPED_WHILE_CLOSING = 2
-    STOPPED_WHILE_CLOSING_MSG =  'Fingers have stopped due to a contact while closing'
+    STOPPED_WHILE_CLOSING_MSG = 'Fingers have stopped due to a contact while closing'
     STOPPED_AT_REQUESTED_POSITION = 3
     STOPPED_AT_REQUESTED_POSITION_MSG = 'Fingers are at requested position'
 
     def __init__(self):
 
-        self.command_publisher = rospy.Publisher('Robotiq2FGripperRobotOutput', outputMsg.Robotiq2FGripper_robot_output, queue_size=1)
+        self.command_publisher = rospy.Publisher(
+            'Robotiq2FGripperRobotOutput', outputMsg.Robotiq2FGripper_robot_output, queue_size=1)
 
         # run state publisher
-        state_publisher = Thread(target=Robotiq2f85.run_state_publisher, args=(self, 'gripper_state', ))
+        state_publisher = Thread(
+            target=Robotiq2f85.run_state_publisher, args=(self, 'gripper_state', ))
 
         rospy.loginfo("Starting gripper state publisher")
         state_publisher.start()
@@ -85,7 +89,7 @@ class Robotiq2f85:
             'fault_msg': Robotiq2f85.NOT_DEFINED,
             # Moving state
             'go_to_state': Robotiq2f85.NOT_DEFINED,
-            'go_to_msg':Robotiq2f85.NOT_DEFINED,
+            'go_to_msg': Robotiq2f85.NOT_DEFINED,
             # Requested position echo
             'requested_position_echo': Robotiq2f85.NOT_DEFINED,
             # Current position
@@ -114,11 +118,10 @@ class Robotiq2f85:
         while self._state['activation_state'] != Robotiq2f85.ACTIVATION_COMPLETED:
             rospy.loginfo("Waiting for gripper activation completion....")
             if self._state['activation_state'] == Robotiq2f85.ACTIVATION_RESET:
-                rospy.logerr(f"{self._state['fault_msg']}") 
+                rospy.logerr(f"{self._state['fault_msg']}")
             rospy.sleep(0.5)
             self.update_state()
         rospy.loginfo("Activation completed, the gripper is ready")
-
 
     def _clip(self, value, low_threshold, high_threshold):
         if value < low_threshold:
@@ -132,54 +135,54 @@ class Robotiq2f85:
         """
 
         # gACT
-        # check if the gripper is active or not 
-        if(state_msg.gACT == 0):
+        # check if the gripper is active or not
+        if (state_msg.gACT == 0):
             self._state['state'] = Robotiq2f85.RESET
-        elif(state_msg.gACT == 1):
+        elif (state_msg.gACT == 1):
             self._state['state'] = Robotiq2f85.ACTIVATE
 
         # gFLT
         # check for fault messages
-        if(state_msg.gFLT == 0x00):
+        if (state_msg.gFLT == 0x00):
             self._state['fault_state'] = Robotiq2f85.NO_FAULT_BIT
             self._state['fault_msg'] = Robotiq2f85.NO_FAULT
-        if(state_msg.gFLT == 0x05):
+        if (state_msg.gFLT == 0x05):
             self._state['fault_state'] = Robotiq2f85.FAULT_BIT
             self._state['fault_msg'] = Robotiq2f85.ACTION_DELAYES
-        if(state_msg.gFLT == 0x07):
+        if (state_msg.gFLT == 0x07):
             self._state['fault_state'] = Robotiq2f85.FAULT_BIT
             self._state['fault_msg'] = Robotiq2f85.ACTIVATION_FAULT
-        if(state_msg.gFLT == 0x09):
+        if (state_msg.gFLT == 0x09):
             self._state['fault_state'] = Robotiq2f85.FAULT_BIT
             self._state['fault_msg'] = Robotiq2f85.COMMUNICATION_ERROR
-        if(state_msg.gFLT == 0x0B):
+        if (state_msg.gFLT == 0x0B):
             self._state['fault_state'] = Robotiq2f85.FAULT_BIT
             self._state['fault_msg'] = Robotiq2f85.AUTOMATIC_RELEASE_PROGRESS
-        if(state_msg.gFLT == 0x0E):
+        if (state_msg.gFLT == 0x0E):
             self._state['fault_state'] = Robotiq2f85.FAULT_BIT
             self._state['fault_msg'] = Robotiq2f85.OVERCURRENT
-        if(state_msg.gFLT == 0x0F):
+        if (state_msg.gFLT == 0x0F):
             self._state['fault_state'] = Robotiq2f85.FAULT_BIT
             self._state['fault_msg'] = Robotiq2f85.AUTOMATIC_RELEASE_COMPLETED
 
         # gSTA
         # check for activation state
-        if(state_msg.gSTA == 0):
+        if (state_msg.gSTA == 0):
             self._state['activation_state'] = Robotiq2f85.ACTIVATION_RESET
-            self._state['activation_state_msg'] =  Robotiq2f85.ACTIVATION_RESET_MSG
-        if(state_msg.gSTA == 1):
+            self._state['activation_state_msg'] = Robotiq2f85.ACTIVATION_RESET_MSG
+        if (state_msg.gSTA == 1):
             self._state['activation_state'] = Robotiq2f85.ACTIVATION_IN_PROGRESS
-            self._state['activation_state_msg'] =  Robotiq2f85.ACTIVATION_IN_PROGRESS_MSG
-        if(state_msg.gSTA == 3):
+            self._state['activation_state_msg'] = Robotiq2f85.ACTIVATION_IN_PROGRESS_MSG
+        if (state_msg.gSTA == 3):
             self._state['activation_state'] = Robotiq2f85.ACTIVATION_COMPLETED
-            self._state['activation_state_msg'] =  Robotiq2f85.ACTIVATION_COMPLETED_MSG
+            self._state['activation_state_msg'] = Robotiq2f85.ACTIVATION_COMPLETED_MSG
 
         # gGTO
         # check for moving state
-        if(state_msg.gGTO == 0):
+        if (state_msg.gGTO == 0):
             self._state['go_to_state'] = Robotiq2f85.STAND_BY
             self._state['go_to_msg'] = Robotiq2f85.STAND_BY_MSG
-        if(state_msg.gGTO == 1):
+        if (state_msg.gGTO == 1):
             self._state['go_to_state'] = Robotiq2f85.GO_TO
             self._state['go_to_msg'] = Robotiq2f85.GO_TO_MSG
 
@@ -197,16 +200,16 @@ class Robotiq2f85:
 
         # gOBJ
         # check for object state
-        if(state_msg.gOBJ == 0):
+        if (state_msg.gOBJ == 0):
             self._state['obj_detection'] = Robotiq2f85.MOVING_FINGERS
             self._state['obj_detection_msg'] = Robotiq2f85.MOVING_FINGERS_MSG
-        if(state_msg.gOBJ == 1):
+        if (state_msg.gOBJ == 1):
             self._state['obj_detection'] = Robotiq2f85.STOPPED_WHILE_OPENING
             self._state['obj_detection_msg'] = Robotiq2f85.STOPPED_WHILE_OPENING_MSG
-        if(state_msg.gOBJ == 2):
+        if (state_msg.gOBJ == 2):
             self._state['obj_detection'] = Robotiq2f85.STOPPED_WHILE_CLOSING
             self._state['obj_detection_msg'] = Robotiq2f85.STOPPED_WHILE_CLOSING_MSG
-        if(state_msg.gOBJ == 3):
+        if (state_msg.gOBJ == 3):
             self._state['obj_detection'] = Robotiq2f85.STOPPED_AT_REQUESTED_POSITION
             self._state['obj_detection_msg'] = Robotiq2f85.STOPPED_AT_REQUESTED_POSITION_MSG
 
@@ -215,7 +218,7 @@ class Robotiq2f85:
             self._state['gripper_open'] = True
         if self._state['finger_position'] >= 220:
             # gripper is full closed
-            self._state['gripper_open'] = False    
+            self._state['gripper_open'] = False
         if self._state['obj_detection'] == Robotiq2f85.STOPPED_WHILE_CLOSING:
             # gripper is closed due to object picking
             self._state['gripper_open'] = False
@@ -224,58 +227,59 @@ class Robotiq2f85:
             self._state['gripper_open'] = True
 
     def update_state(self):
-        state_msg = rospy.wait_for_message("Robotiq2FGripperRobotInput", inputMsg.Robotiq2FGripper_robot_input)
+        state_msg = rospy.wait_for_message(
+            "Robotiq2FGripperRobotInput", inputMsg.Robotiq2FGripper_robot_input)
         self._state_interpreter(state_msg=state_msg)
-    
+
     def reset(self):
         command = outputMsg.Robotiq2FGripper_robot_output()
         command.rACT = 0
         rospy.logdebug(f"Resetting the gripper with command \n{command}")
         return command
-    
+
     def activate(self):
-        
+
         command = outputMsg.Robotiq2FGripper_robot_output()
         command.rACT = 1
         command.rGTO = 1
-        command.rSP  = 255
-        command.rFR  = 150
+        command.rSP = 255
+        command.rFR = 150
         return command
 
     def open(self, force: int, speed: int):
-   
+
         force = self._clip(force, 0, 255)
         speed = self._clip(speed, 0, 255)
         command = outputMsg.Robotiq2FGripper_robot_output()
         command.rACT = 1
         command.rGTO = 1
-        command.rSP  = speed
-        command.rFR  = force
+        command.rSP = speed
+        command.rFR = force
         command.rPR = 0
         return command
 
     def close(self, force, speed):
-        
+
         force = self._clip(force, 0, 255)
         speed = self._clip(speed, 0, 255)
         command = outputMsg.Robotiq2FGripper_robot_output()
         command.rACT = 1
         command.rGTO = 1
-        command.rSP  = speed
-        command.rFR  = force
+        command.rSP = speed
+        command.rFR = force
         command.rPR = 255
         return command
 
     def set_positin(self, position, force, speed):
-        
+
         force = self._clip(force, 0, 255)
         speed = self._clip(speed, 0, 255)
         position = self._clip(position, 0, 255)
         command = outputMsg.Robotiq2FGripper_robot_output()
         command.rACT = 1
         command.rGTO = 1
-        command.rSP  = speed
-        command.rFR  = force
+        command.rSP = speed
+        command.rFR = force
         command.rPR = position
         return command
 
@@ -283,7 +287,7 @@ class Robotiq2f85:
         # 1. Send command
         if command == 'a':
             self.command_publisher.publish(self.activate())
-        
+
         elif command == 'r':
             rospy.logdebug("Resetting the gripper")
             self.command_publisher.publish(self.reset())
@@ -294,13 +298,15 @@ class Robotiq2f85:
 
         elif command == 'c':
             rospy.logdebug("Sending close command to gripper")
-            self.command_publisher.publish(self.close(force=force, speed=speed))
+            self.command_publisher.publish(
+                self.close(force=force, speed=speed))
 
         elif command == 's':
-            if position<0:
+            if position < 0:
                 rospy.logerr("For set_position command, position is required")
             else:
-                self.command_publisher.publish(self.set_positin(position=position, force=force, speed=speed))
+                self.command_publisher.publish(self.set_positin(
+                    position=position, force=force, speed=speed))
 
         # 2. Update the internal state variable
         self.update_state()
@@ -309,11 +315,11 @@ class Robotiq2f85:
         self.update_state()
         return self._state
 
-
     def run_state_publisher(gripper_ref, gripper_state_topic_name):
         # Create node
-        state_publisher = rospy.Publisher(gripper_state_topic_name, GripperState, queue_size=1)
-        gripper_state = GripperState()
+        state_publisher = rospy.Publisher(
+            gripper_state_topic_name, ur5e_2f_85_controller.msg.GripperState, queue_size=1)
+        gripper_state = ur5e_2f_85_controller.msg.GripperState()
         seq = 0
         rate = rospy.Rate(50)
         while not rospy.is_shutdown():
@@ -322,7 +328,7 @@ class Robotiq2f85:
             # create header
             gripper_state.header.stamp = rospy.Time.now()
             gripper_state.header.seq = seq
-            seq +=1 
+            seq += 1
             # fill the int filds
             gripper_state.state = state['state']
             gripper_state.activation_state = state['activation_state']

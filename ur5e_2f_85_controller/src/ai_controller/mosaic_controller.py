@@ -3,22 +3,22 @@ import hydra
 from omegaconf import DictConfig, OmegaConf
 import torch
 import os
-import mosaic
+import multi_task_il
 import pickle as pkl
-from mosaic.datasets.savers import Trajectory
+from multi_task_il.datasets.savers import Trajectory
 import numpy as np
 import copy
 from torchvision.transforms import ToTensor, Normalize
 
 
-class MosaicController(ModelControllerInterface):
+class MosaicController():
 
-    ACTION_RANGES = [[-0.35,  0.25],
-                     [-0.30,  0.30],
-                     [0.60,  1.20],
-                     [-3.14,  3.14911766],
-                     [-3.14911766, 3.14911766],
-                     [-3.14911766,  3.14911766]]
+    ACTION_RANGES = np.array([[-0.35,  0.25],
+                              [-0.30,  0.30],
+                              [0.60,  1.20],
+                              [-3.14,  3.14911766],
+                              [-3.14911766, 3.14911766],
+                              [-3.14911766,  3.14911766]])
 
     def __init__(self,
                  conf_file_path: str,
@@ -27,27 +27,35 @@ class MosaicController(ModelControllerInterface):
                  context_robot_name: str,
                  task_name: str,
                  variation_number: int,
-                 trj_number: int) -> None:
+                 trj_number: int,
+                 camera_name: str) -> None:
 
         super().__init__()
         # 1. Load configuration file
         self._config = OmegaConf.load(conf_file_path)
         # 2. Load model
-        self._model = self.load_model(model_path=model_file_path)
+        self._model = self.load_model(model_path=model_file_path).cuda(0)
         # 3. Get context
         self._context_path = context_path
         self._context_robot_name = context_robot_name
         self._task_name = task_name
         self._variation_number = variation_number
         self._trj_number = trj_number
+        self._camera_name = camera_name
         self._context = self._load_context(context_path,
                                            context_robot_name,
                                            task_name,
                                            variation_number,
                                            trj_number)
         # 4. Pre-process context frames
-        self._context = [[self.pre_process_input(
-            i[:, :, ::-1]/255)[None].float().cuda(0) for i in self._context]]
+        self._context = [self.pre_process_input(
+            i[:, :, ::-1]/255)[None] for i in self._context]
+
+        if isinstance(self._context[0], np.ndarray):
+            self._context = torch.from_numpy(
+                np.concatenate(self._context, 0))[None]
+        else:
+            self._context = torch.cat(self._context, dim=0)[None]
 
     def modify_context(trj_number):
         pass
@@ -98,7 +106,7 @@ class MosaicController(ModelControllerInterface):
         if isinstance(traj, (list, tuple)):
             return [traj[i] for i in selected_frames]
         elif isinstance(traj, Trajectory):
-            return [traj[i]['obs']['image'] for i in selected_frames]
+            return [traj[i]['obs'][f"{self._camera_name}_image"] for i in selected_frames]
 
     def load_model(self, model_path=None):
 
@@ -127,11 +135,12 @@ class MosaicController(ModelControllerInterface):
                         std=[0.229, 0.224, 0.225])(obs)
         return obs
 
-    def _denormalize_action(action):
+    def _denormalize_action(self, action):
         action = np.clip(action.copy(), -1, 1)
-        for d in range(action_ranges.shape[0]):
+        for d in range(MosaicController.ACTION_RANGES.shape[0]):
             action[d] = (0.5 * (action[d] + 1) *
-                         (action_ranges[d, 1] - action_ranges[d, 0])) + action_ranges[d, 0]
+                         (MosaicController.ACTION_RANGES[d, 1] - MosaicController.ACTION_RANGES[d, 0])) + MosaicController.ACTION_RANGES[d, 0]
+        return action
 
     def post_process_output(self, action: np.array):
         """Perform post-process on generated output
@@ -151,11 +160,16 @@ class MosaicController(ModelControllerInterface):
         """
 
         # 1. Pre-process input
-        obs = self.pre_process_input(obs)[None].float().cuda(0)
-        s_t = torch.from_numpy(robot_state.astype(np.float32))[None]
+        obs = self.pre_process_input(obs)[None].cuda(0)
+        s_t = torch.from_numpy(robot_state.astype(np.float32))[
+            None][None].cuda(0)
         # 2. Run inference
+        target_obj_embedding = None
+        obs = obs[None]
+        # 3. Put context on GPU
+        context = self._context.cuda(0)
         with torch.no_grad():
-            out = self._model(states=s_t, images=obs, context=self._context, eval=True,
+            out = self._model(states=s_t, images=obs, context=context, eval=True,
                               target_obj_embedding=target_obj_embedding)  # to avoid computing ATC loss
             try:
                 target_obj_embedding = out['target_obj_embedding']
@@ -169,26 +183,36 @@ class MosaicController(ModelControllerInterface):
 
 if __name__ == '__main__':
 
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--model_folder', type=str, default=None)
+    parser.add_argument("--model_name", type=str, default=None)
+    parser.add_argument("--context_path", type=str, default=None)
+    parser.add_argument("--task_name", type=str, default=None)
+    parser.add_argument("--context_robot_name", type=str, default=None)
+    parser.add_argument("--variation_number", type=int, default=None)
+    parser.add_argument("--trj_number", type=int, default=None)
+    args = parser.parse_args()
+
     import debugpy
     debugpy.listen(('0.0.0.0', 5678))
     print("Waiting for debugger attach")
     debugpy.wait_for_client()
 
-    current_file_path = os.path.abspath(os.getcwd())
-    model_folder = "checkpoint/mosaic"
-    model_name = "model_save-29348.pt"
-
+    # 1. Load Model
+    current_file_path = os.path.dirname(os.path.abspath(__file__))
+    model_folder = args.model_folder
+    model_name = args.model_name
     conf_file_path = os.path.join(
         current_file_path, model_folder, "config.yaml")
     model_file_path = os.path.join(
         current_file_path, model_folder, model_name)
-
     # context path
-    context_path = "/media/ciccio/Sandisk/multitask_dataset_baseline"
-    context_robot_name = "sawyer"
-    task_name = "pick_place"
-    variation_number = 0
-    trj_number = 0
+    context_path = args.context_path
+    context_robot_name = args.context_robot_name
+    task_name = args.task_name
+    variation_number = args.variation_number
+    trj_number = args.trj_number
 
     mosaic_controller = MosaicController(
         conf_file_path=conf_file_path,
@@ -197,4 +221,5 @@ if __name__ == '__main__':
         context_robot_name=context_robot_name,
         task_name=task_name,
         variation_number=variation_number,
-        trj_number=trj_number)
+        trj_number=trj_number,
+        camera_name='camera_front')

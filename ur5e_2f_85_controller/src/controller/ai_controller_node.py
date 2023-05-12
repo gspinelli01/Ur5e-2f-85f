@@ -5,7 +5,7 @@ from cv_bridge import CvBridge
 import cv2
 from zed_camera_controller.srv import *
 import os
-from ur5e_2f_85_controller.robotiq2f_85 import Robotiq2f85
+from controller.robotiq2f_85 import Robotiq2f85
 import tf2_ros
 import numpy as np
 import math
@@ -174,10 +174,6 @@ if __name__ == '__main__':
     rospy.init_node("ai_controller_node", log_level=rospy.INFO)
 
     # 1. Load Model
-    import debugpy
-    debugpy.listen(('0.0.0.0', 5678))
-    print("Waiting for debugger attach")
-    debugpy.wait_for_client()
 
     current_file_path = os.path.dirname(os.path.abspath(__file__))
     model_folder = args.model_folder
@@ -203,8 +199,6 @@ if __name__ == '__main__':
         trj_number=trj_number,
         camera_name='camera_front')
 
-    move_group = MoveGroupPythonInterface()
-
     # 2. Camera srv proxy
     # camera client service
     rospy.loginfo("---- Waiting for env camera service ----")
@@ -212,8 +206,9 @@ if __name__ == '__main__':
         "/get_frames", GetFrames, True)
     bridge = CvBridge()
 
-    # # 3. Initialise robot-gripper
-    # # gripper = Robotiq2f85()
+    # 3. Initialise robot-gripper
+    gripper = Robotiq2f85()
+    move_group = MoveGroupPythonInterface(gripper_ref=gripper)
 
     # 4. Init tf listener for TCP Pose
     tfBuffer = tf2_ros.Buffer()
@@ -258,8 +253,7 @@ if __name__ == '__main__':
                          tcp_pose.transform.rotation.w])
         aa = _quat2axisangle(quat)
         # 2.2 Get Gripper joints positions
-        # finger_position = gripper.get_state()['finger_position']
-        finger_position = 0
+        finger_position = gripper.get_state()['finger_position']
         scaled_finger_position = finger_position/255
         left_joint = np.array([scaled_finger_position])
         right_joint = np.array([-scaled_finger_position])

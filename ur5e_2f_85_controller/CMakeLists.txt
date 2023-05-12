@@ -107,7 +107,7 @@ catkin_package(
 
   # INCLUDE_DIRS include
   # LIBRARIES ur5e_2f_85_controller
-  CATKIN_DEPENDS roscpp rospy message_runtime
+  CATKIN_DEPENDS roscpp rospy std_msgs message_runtime
 
   # DEPENDS rospy roscpp
 )
@@ -121,10 +121,7 @@ catkin_package(
 include_directories(
 
   # include
-  # ${catkin_INCLUDE_DIRS}
-  # TODO: Check names of system library include directories (rospy, roscpp)
-  ${rospy_INCLUDE_DIRS}
-  ${roscpp_INCLUDE_DIRS}
+  ${catkin_INCLUDE_DIRS}
 )
 
 # # Declare a C++ library

@@ -1,17 +1,23 @@
 <launch>
 
     <!--Teleoperation controller parameters-->
-    <rosparam command="load" file="$(find ur5e_2f_85_teleoperation)/config/teleoperation_controller.yaml" />
+    <rosparam command="load"
+        file="$(find ur5e_2f_85_teleoperation)/config/teleoperation_controller.yaml" />
 
-    <!--1. Run gripper drivers-->
-    <node name="robotiq_2f_gripper_control" pkg="robotiq_2f_gripper_control" type="Robotiq2FGripperRtuNode.py" args="/tmp/ttyUR" output="screen"/>
-    
-    <!--2. Run joy drivers-->
-     <include file="$(find ds4_driver)/launch/ds4_driver.launch">
+    <!--1.
+    Run gripper drivers-->
+    <node name="robotiq_2f_gripper_control" pkg="robotiq_2f_gripper_control"
+        type="Robotiq2FGripperRtuNode.py" args="/tmp/ttyUR" output="screen" />
+
+    <!--2.
+    Run joy drivers-->
+    <include file="$(find ds4_driver)/launch/ds4_driver.launch">
         <arg name="use_standard_msgs" default="false" />
-    </include> 
-    
-    <!--3. Run teleoperation node-->
-    <node name="teleoperation_node" pkg="ur5e_2f_85_teleoperation" type="teleoperation_node.py"  output="screen"/>
+    </include>
+
+    <!--3.
+    Run teleoperation node-->
+    <node name="teleoperation_node" pkg="ur5e_2f_85_teleoperation" type="teleoperation_node.py"
+        output="screen" />
 
 </launch>

@@ -7,7 +7,7 @@ import copy
 import moveit_commander
 import moveit_msgs.msg
 import geometry_msgs.msg
-from ur5e_2f_85_controller.robotiq2f_85 import Robotiq2f85
+from controller.robotiq2f_85 import Robotiq2f85
 
 
 try:
@@ -60,7 +60,7 @@ def all_close(goal, actual, tolerance):
 class MoveGroupPythonInterface(object):
     """MoveGroupPythonInterface"""
 
-    def __init__(self):
+    def __init__(self, gripper_ref=None):
         super(MoveGroupPythonInterface, self).__init__()
 
         # BEGIN_SUB_TUTORIAL setup
@@ -109,6 +109,11 @@ class MoveGroupPythonInterface(object):
         self.planning_frame = planning_frame
         self.eef_link = eef_link
         self.group_names = group_names
+
+        if gripper_ref is None:
+            self._gripper = gripper_ref
+        else:
+            self._gripper = Robotiq2f85()
 
     def go_to_joint_state(self, joint_goal_pos=[]):
         move_group = self.move_group
@@ -161,8 +166,8 @@ class MoveGroupPythonInterface(object):
 
                 # Now, we call the planner to compute the plan and execute it.
                 # `go()` returns a boolean indicating whether the planning and execution was successful.
-                # self._gripper.send_command(
-                #     command='s', position=gripper_pos, force=100, speed=255)
+                self._gripper.send_command(
+                    command='s', position=gripper_pos, force=100, speed=255)
                 # success = move_group.go(wait=True)
                 rospy.loginfo(f"Move group result {success}")
                 if success:

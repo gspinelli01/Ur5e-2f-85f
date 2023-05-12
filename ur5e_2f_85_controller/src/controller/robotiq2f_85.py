@@ -3,18 +3,14 @@
 # This class implements the main methods for controlling the Robotiq2f85 gripper
 #
 ####
-from threading import Thread
-import ur5e_2f_85_controller
-import rospy
-from robotiq_2f_gripper_control.msg import _Robotiq2FGripper_robot_input as inputMsg
-from robotiq_2f_gripper_control.msg import _Robotiq2FGripper_robot_output as outputMsg
 from robotiq_2f_gripper_control.baseRobotiq2FGripper import robotiqbaseRobotiq2FGripper
-
-
-# import debugpy
-# debugpy.listen(5678)
-# debugpy.wait_for_client()
-
+from robotiq_2f_gripper_control.msg import _Robotiq2FGripper_robot_output as outputMsg
+from robotiq_2f_gripper_control.msg import _Robotiq2FGripper_robot_input as inputMsg
+import rospy
+from threading import Thread
+import sys
+sys.path.insert(0, '/catkin_ws/devel/lib/python3/dist-packages')
+from ur5e_2f_85_controller.msg import GripperState
 
 class Robotiq2f85:
 
@@ -318,8 +314,8 @@ class Robotiq2f85:
     def run_state_publisher(gripper_ref, gripper_state_topic_name):
         # Create node
         state_publisher = rospy.Publisher(
-            gripper_state_topic_name, ur5e_2f_85_controller.msg.GripperState, queue_size=1)
-        gripper_state = ur5e_2f_85_controller.msg.GripperState()
+            gripper_state_topic_name, GripperState, queue_size=1)
+        gripper_state = GripperState()
         seq = 0
         rate = rospy.Rate(50)
         while not rospy.is_shutdown():
@@ -347,3 +343,8 @@ class Robotiq2f85:
             state_publisher.publish(gripper_state)
 
             rate.sleep()
+
+if __name__ == '__main__':
+    rospy.init_node("robotiq_node", anonymous=True)
+    robotiq = Robotiq2f85()
+    rospy.spin()

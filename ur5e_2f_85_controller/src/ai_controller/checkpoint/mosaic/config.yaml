@@ -160,7 +160,7 @@ tasks_cfgs:
     demo_per_subtask: 100
 debug: false
 EXPERT_DATA: /home/frosa_loc/multitask_dataset_ur/multitask_dataset_language_command
-save_path: /media/ciccio/Sandisk/mosaic-baseline-sav-folder/mosaic-baseline-sav-folder/ur-baseline
+save_path: /home/frosa_loc/Multi-Task-LFD-Framework/mosaic-baseline-sav-folder/ur-baseline
 wandb_log: true
 project_name: ur_mosaic_baseline_no_obj_detector
 log_freq: 1

@@ -10,7 +10,6 @@ from ur5e_2f_85_controller.srv import GoToJoint, GoToJointResponse
 from math import pi, tau, dist, fabs, cos
 from controller_manager_msgs.srv import ListControllers, SwitchController, SwitchControllerRequest
 
-
 class MoveGroupServiceServer():
 
     def __init__(self, group_name):

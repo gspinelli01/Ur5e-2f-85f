@@ -142,4 +142,7 @@ COPY requirements.txt ${HOME}/requirements.txt
 RUN sudo python3 -m pip install -r /requirements.txt
 COPY start.sh ${HOME}
 WORKDIR ${HOME}
+
+RUN sudo apt-get update -y
+RUN sudo apt-get install libturbojpeg nano -y
 CMD ["/bin/bash", "start.sh"]

@@ -17,8 +17,6 @@ source devel/setup.bash
 # Install mosaic
 sudo python3 -m pip install /Multi-Task-LFD-Framework/repo/mosaic/.
 sudo python3 -m pip install /Multi-Task-LFD-Framework/repo/Multi-Task-LFD-Training-Framework/training/.
-sudo apt-get update -y
-sudo apt-get install libturbojpeg -y
 # Open terminal
 /bin/bash
 sudo su

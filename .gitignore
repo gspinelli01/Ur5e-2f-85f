@@ -1,3 +1,4 @@
 checkpoint/*
 *.pt
 __pycache__
+*.pyc

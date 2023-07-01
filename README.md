@@ -89,8 +89,6 @@ sudo apt-get install ros-noetic-soem
 
 3. Follow the instructions in README.md file
 
-4. 
-
 ## Compile
 1. Blacklist for useless robotiq packages
 ```bash

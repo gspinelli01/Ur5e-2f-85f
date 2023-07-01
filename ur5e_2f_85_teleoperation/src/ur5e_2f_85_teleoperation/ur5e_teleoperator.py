@@ -1,6 +1,6 @@
 from geometry_msgs.msg import Twist
 import rospy
-from ur5e_2f_85_controller.robotiq2f_85 import Robotiq2f85
+from controller.robotiq2f_85 import Robotiq2f85
 from ur5e_2f_85_teleoperation.msg import TrajectoryState
 from ds4_driver.msg import Feedback
 
@@ -105,19 +105,19 @@ class UR5eTeleoperator:
                 command_msg.angular.z = (- msg.buttons[5]) * (angular_scale*2)
             
             # get gripper state
-            # gripper_state = self._gripper.get_state()
-            # # press square to close the gripper if the gripper is open
-            # if msg.buttons[0] == 1 and self._previous_gripper_button_state == 0 and \
-            #    gripper_state['state'] == Robotiq2f85.ACTIVATE and gripper_state['gripper_open']:
-            #     gripper_command = 'c'
-            #     self._previous_gripper_button_state = 1
-            # # press square button to open the gripper if the gripper is closed
-            # elif msg.buttons[0] == 1 and self._previous_gripper_button_state == 0 and \
-            #    gripper_state['state'] == Robotiq2f85.ACTIVATE and not gripper_state['gripper_open']:
-            #     gripper_command = 'o'
-            #     self._previous_gripper_button_state = 1
-            # elif msg.buttons[0] == 0 and self._previous_gripper_button_state == 1:
-            #     self._previous_gripper_button_state = 0
+            gripper_state = self._gripper.get_state()
+            # press square to close the gripper if the gripper is open
+            if msg.buttons[0] == 1 and self._previous_gripper_button_state == 0 and \
+               gripper_state['state'] == Robotiq2f85.ACTIVATE and gripper_state['gripper_open']:
+                gripper_command = 'c'
+                self._previous_gripper_button_state = 1
+            # press square button to open the gripper if the gripper is closed
+            elif msg.buttons[0] == 1 and self._previous_gripper_button_state == 0 and \
+               gripper_state['state'] == Robotiq2f85.ACTIVATE and not gripper_state['gripper_open']:
+                gripper_command = 'o'
+                self._previous_gripper_button_state = 1
+            elif msg.buttons[0] == 0 and self._previous_gripper_button_state == 1:
+                self._previous_gripper_button_state = 0
 
             # press the cross to activate/inactive teleoperator
             if msg.buttons[3] == 1 and self._previous_teleoperator_activation_button_state == 0 and self._teleoperator_state == UR5eTeleoperator.INACTIVE:
@@ -153,7 +153,7 @@ class UR5eTeleoperator:
                 self._previous_trajectory_state_button_state = 0
 
         elif topic_name == "/status":
-            rospy.logdebug("Creating twist command from /joy topic")
+            rospy.logdebug("Creating twist command from /status topic")
             # set linear velocity
             command_msg.linear.x = msg.axis_left_x * linear_scale 
             command_msg.linear.y = -msg.axis_left_y * linear_scale # value positive -> positive y

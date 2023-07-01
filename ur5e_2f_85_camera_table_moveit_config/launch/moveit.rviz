@@ -1,10 +1,11 @@
 Panels:
   - Class: rviz/Displays
-    Help Height: 84
+    Help Height: 0
     Name: Displays
     Property Tree Widget:
       Expanded:
         - /MotionPlanning1
+        - /MotionPlanning1/Scene Geometry1
         - /MotionPlanning1/Scene Robot1
         - /MotionPlanning1/Planning Request1
         - /MotionPlanning1/Planning Metrics1
@@ -12,7 +13,7 @@ Panels:
         - /TF1/Frames1
         - /RobotModel1
       Splitter Ratio: 0.5
-    Tree Height: 277
+    Tree Height: 361
   - Class: rviz/Help
     Name: Help
   - Class: rviz/Views
@@ -280,7 +281,7 @@ Visualization Manager:
         Interactive Marker Size: 0
         Joint Violation Color: 255; 0; 255
         Planning Group: tcp_group
-        Query Goal State: true
+        Query Goal State: false
         Query Start State: false
         Show Workspace: false
         Start State Alpha: 1

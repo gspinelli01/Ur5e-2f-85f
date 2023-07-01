@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.1.3)
 project(ur5e_2f_85_camera_table_moveit_config)
 
-find_package(catkin REQUIRED)
+find_package(catkin REQUIRED COMPONENTS
+  robotiq_2f_85_gripper_visualization
+)
 
 catkin_package()
 

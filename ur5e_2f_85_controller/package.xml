@@ -56,6 +56,8 @@
   <build_depend>message_generation</build_depend>
   <build_depend>moveit_commander</build_depend>
   <build_depend>moveit_msgs</build_depend>
+  <build_depend>robotiq_2f_gripper_control</build_depend>
+  <build_depend>robotiq_modbus_rtu</build_depend>
 
   <build_export_depend>roscpp</build_export_depend>
   <build_export_depend>rospy</build_export_depend>
@@ -64,14 +66,18 @@
   <build_export_depend>message_runtime</build_export_depend>
   <build_export_depend>moveit_commander</build_export_depend>
   <build_export_depend>moveit_msgs</build_export_depend>
-  
+  <build_export_depend>robotiq_2f_gripper_control</build_export_depend>
+  <build_export_depend>robotiq_modbus_rtu</build_export_depend>
+
   <exec_depend>roscpp</exec_depend>
   <exec_depend>rospy</exec_depend>
   <exec_depend>robotiq_2f_gripper_control</exec_depend>
   <exec_depend>message_runtime</exec_depend>
   <exec_depend>moveit_commander</exec_depend>
   <exec_depend>moveit_msgs</exec_depend>
-  
+  <exec_depend>robotiq_2f_gripper_control</exec_depend>
+  <exec_depend>robotiq_modbus_rtu</exec_depend>
+
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

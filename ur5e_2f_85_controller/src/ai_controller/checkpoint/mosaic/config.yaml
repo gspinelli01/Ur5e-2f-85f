@@ -3,10 +3,10 @@ tasks_cfgs:
     name: nut_assembly
     n_tasks: 9
     crop:
-    - 0
-    - 0
-    - 0
-    - 0
+    - 20
+    - 25
+    - 80
+    - 75
     n_per_task: 3
     task_ids:
     - 0
@@ -84,33 +84,21 @@ tasks_cfgs:
     demo_per_subtask: 100
   pick_place:
     name: pick_place
-    n_tasks: 16
+    n_tasks: 4
     crop:
     - 0
+    - 30
+    - 50
     - 0
-    - 0
-    - 0
-    n_per_task: 8
+    n_per_task: 2
     task_ids:
     - 0
     - 1
     - 2
     - 3
-    - 4
-    - 5
-    - 6
-    - 7
-    - 8
-    - 9
-    - 10
-    - 11
-    - 12
-    - 13
-    - 14
-    - 15
     loss_mul: 1
     task_per_batch: 16
-    traj_per_subtask: 100
+    traj_per_subtask: 36
     demo_per_subtask: 100
   stack_block:
     name: stack_block
@@ -159,25 +147,32 @@ tasks_cfgs:
     traj_per_subtask: 100
     demo_per_subtask: 100
 debug: false
-EXPERT_DATA: /home/frosa_loc/multitask_dataset_ur/multitask_dataset_language_command
-save_path: /home/frosa_loc/Multi-Task-LFD-Framework/mosaic-baseline-sav-folder/ur-baseline
+EXPERT_DATA: /raid/home/frosa_Loc/opt_dataset
+save_path: /user/frosa/multi_task_lfd/checkpoint_save_folder
 wandb_log: true
-project_name: ur_mosaic_baseline_no_obj_detector
-log_freq: 1
+project_name: Real-1Task-Pick-Place-MOSAIC
+log_freq: 100
+val_freq: -1
+print_freq: 1
+save_freq: -1
+cosine_annealing: false
 save_optim: true
 resume: false
-resume_path: None
-resume_step: -1
+resume_path: /user/frosa/multi_task_lfd/checkpoint_save_folder/Real-1Task-Pick-Place-MOSAIC-Cond-Target-Obj-Detector-Batch12/
+resume_step: 27807
 device: 0
-exp_name: 1Task-Pick-Place-Mosaic-No-Obj-Detector-Ur5e-Batch128
-epochs: 250
-bsize: 128
-vsize: 128
+exp_name: Real-1Task-Pick-Place-MOSAIC-Batch16
+epochs: 90
+bsize: 16
+vsize: 16
 optimizer: AdamW
 task_names: pick_place
-inv_mul: 1
-bc_mul: 1
-pnt_mul: 0.1
+rollout: false
+dataset_target: multi_task_il.datasets.multi_task_datasets.MultiTaskPairedDataset
+inv_mul: 1.0
+bc_mul: 1.0
+ce_mul: 0
+pnt_mul: 0
 rep_muls:
   img_byol: ${byol.mul_pre}
   attn_byol: ${byol.mul_pos}
@@ -189,12 +184,13 @@ rep_muls:
 train_cfg:
   batch_size: ${bsize}
   val_size: ${vsize}
-  lr: 0.0001
+  lr: 0.0005
   optimizer: ${optimizer}
   epochs: ${epochs}
   log_freq: ${log_freq}
   save_freq: ${save_freq}
   print_freq: ${print_freq}
+  val_freq: ${val_freq}
   inv_loss_mult: ${inv_mul}
   bc_loss_mult: ${bc_mul}
   pnt_loss_mult: ${pnt_mul}
@@ -203,58 +199,46 @@ train_cfg:
   sampler: ${samplers}
   target_update_freq: 5
   early_stopping: ${early_stopping_cfg}
-  weight_decay: 0.05
+  weight_decay: 0.0
   lr_schedule: None
 early_stopping_cfg:
-  patience: 20
+  patience: -1
   delta: 0.001
 tasks:
 - name: pick_place
-  n_tasks: 16
+  n_tasks: 4
   crop:
   - 0
+  - 30
+  - 50
   - 0
-  - 0
-  - 0
-  n_per_task: 8
+  n_per_task: 4
   task_ids:
   - 0
   - 1
   - 2
   - 3
-  - 4
-  - 5
-  - 6
-  - 7
-  - 8
-  - 9
-  - 10
-  - 11
-  - 12
-  - 13
-  - 14
-  - 15
   loss_mul: 1
   task_per_batch: 16
-  traj_per_subtask: 100
+  traj_per_subtask: 36
   demo_per_subtask: 100
 single_task: false
 exclude_task: false
 use_all_tasks: false
-set_same_n: -1
+set_same_n: 4
 limit_num_traj: -1
 limit_num_demo: -1
-loader_workers: 20
+loader_workers: 8
 samplers:
   batch_size: ${bsize}
   drop_last: false
   shuffle: true
-  balancing_policy: 1
-val_skip: false
+  balancing_policy: 0
+val_skip: true
 train_skip: true
 dataset_cfg:
-  _target_: multi_task_il.datasets.multi_task_datasets.MultiTaskPairedDataset
-  root_dir: ${EXPERT_DATA}/
+  _target_: ${dataset_target}
+  root_dir: ${EXPERT_DATA}
   mode: ???
   tasks_spec: ${tasks}
   aux_pose: true
@@ -266,14 +250,15 @@ dataset_cfg:
   demo_T: 4
   obs_T: 7
   normalize_action: true
+  load_bb: true
   normalization_ranges:
   - - -0.35
-    - 0.25
-  - - -0.3
-    - 0.3
-  - - 0.6
-    - 1.2
-  - - -3.14
+    - 0.35
+  - - 0.2
+    - 0.9
+  - - -0.1
+    - 0.2
+  - - -3.14911766
     - 3.14911766
   - - -3.14911766
     - 3.14911766
@@ -283,49 +268,60 @@ dataset_cfg:
   take_first_frame: ${policy.concat_target_obj_embedding}
   data_augs: ${augs}
   non_sequential: false
-  crop_twice: false
-  state_spec:
-  - ee_aa
-  - gripper_qpos
+  crop_twice: true
+  state_spec: null
   allow_val_skip: ${val_skip}
   allow_train_skip: ${train_skip}
   use_strong_augs: true
   select_random_frames: true
-  compute_obj_distribution: true
-  agent_name: ur5e
+  compute_obj_distribution: false
+  agent_name: real_ur5e
   demo_name: panda
+  perform_augs: true
+  perform_scale_resize: false
+  change_command_epoch: true
+  load_eef_point: false
 augs:
-  strong_jitter: 0.01
-  weak_jitter: 0.01
-  grayscale: 0.01
-  blur:
-  - 0.1
-  - 2.0
-  flip: 0.05
-  weak_crop_scale:
-  - 0.8
-  - 1.0
-  strong_crop_scale:
-  - 0.6
-  - 1.0
-  weak_crop_ratio:
-  - 1.8
-  - 1.8
-  strong_crop_ratio:
-  - 1.8
-  - 1.8
-  use_affine: false
-  rand_trans: 0.1
+  old_aug: false
+  brightness:
+  - 0.9
+  - 1.1
+  contrast:
+  - 0.9
+  - 1.1
+  saturation:
+  - 0.9
+  - 1.1
+  hue:
+  - 0.0
+  - 0.0
+  p: 0.1
+  horizontal_flip_p: 0.1
+  brightness_strong:
+  - 0.875
+  - 1.125
+  contrast_strong:
+  - 0.5
+  - 1.5
+  saturation_strong:
+  - 0.5
+  - 1.5
+  hue_strong:
+  - -0.05
+  - 0.05
+  p_strong: 0.5
+  horizontal_flip_p_strong: 0.5
+  null_bb: false
 simclr:
   demo_T: 4
   obs_T: 7
-  mul_pre: 1
-  mul_pos: 1
+  mul_pre: 1.0
+  mul_pos: 1.0
   mul_intm: 0
   tau: 0.005
   compressor_dim: 128
   temporal: true
-  hidden_dim: 512
+  hidden_dim: 128
   fix_step: -1
 byol:
   p: 2
@@ -345,8 +341,8 @@ policy: ${mosaic}
 mosaic:
   _target_: multi_task_il.models.mt_rep.VideoImitation
   load_target_obj_detector: false
-  target_obj_detector_step: 17204
-  target_obj_detector_path: /home/frosa_loc/Multi-Task-LFD-Framework/mosaic-baseline-sav-folder/baseline-1/1Task-Pick-Place-Target-Obj-Random-Frames-Batch128-1gpu-Attn2ly128-Act2ly256mix4-actCat
+  target_obj_detector_step: 36000
+  target_obj_detector_path: /user/frosa/multi_task_lfd/checkpoint_save_folder/Real-1Task-Pick-Place-Cond-Target-Obj-Detector-Batch8
   freeze_target_obj_detector: false
   remove_class_layers: false
   load_contrastive: true
@@ -354,12 +350,13 @@ mosaic:
   latent_dim: 40
   sdim: 8
   concat_state: false
+  concat_bb: false
   height: ${train_cfg.dataset.height}
   width: ${train_cfg.dataset.width}
   demo_T: ${train_cfg.dataset.demo_T}
   obs_T: ${train_cfg.dataset.obs_T}
-  dim_H: 7
-  dim_W: 12
+  dim_H: 13
+  dim_W: 23
   demo_mean: true
   action_cfg: ${actions}
   concat_demo_head: false
@@ -369,10 +366,10 @@ mosaic:
   simclr_config: ${simclr}
 actions:
   n_layers: 2
-  out_dim: 256
+  out_dim: 64
   hidden_dim: 128
   adim: 7
-  n_mixtures: 4
+  n_mixtures: 7
   const_var: false
   sep_var: true
   concat_demo_head: false
@@ -391,9 +388,9 @@ attn:
   demo_out: true
   img_cfg:
     network_flag: 0
-    out_feature: 256
-    drop_dim: 3
-    pretrained: true
+    out_feature: 128
+    drop_dim: 4
+    pretrained: false
 tosil:
   _target_: multi_task_il.models.baselines.InverseImitation
   latent_dim: 40
@@ -402,16 +399,23 @@ tosil:
     n_layers: 1
     is_rnn: false
   vis:
-    conv_drop_dim: 3
+    conv_drop_dim: 2
     st_goal_attn: true
     n_st_attn: 2
     use_pe: true
     attn_heads: 4
-  n_mixtures: 4
   const_var: true
+  sdim: 9
+  adim: 8
+  n_mixtures: 2
   concat_state: false
   pred_point: true
   concat_target_obj_embedding: false
+  load_target_obj_detector: false
+  freeze_target_obj_detector: false
+  target_obj_detector_step: 0
+  target_obj_detector_path: null
+  transformer_feat: true
 lstm:
   _target_: multi_task_il.models.baselines.InverseImitation
   latent_dim: 40
@@ -436,6 +440,18 @@ daml:
   T_context: 4
   maml_lr: 0.1
   first_order: false
+  adim: 8
   n_mix: 2
   const_var: true
-  inner_iters: 1
+  concat_target_obj_embedding: false
+vima:
+  _target_: multi_task_il.models.vima.policy.Policy
+  embed_dim: 640
+  xf_n_layers: 7
+  sattn_n_heads: 20
+  xattn_n_heads: 20
+  views:
+  - front
+  return_dist: true
+  concat_state: true
+  ckpt_path: /home/frosa_loc/Multi-Task-LFD-Framework/repo/Multi-Task-LFD-Training-Framework/training/multi_task_il/models/vima/ckpt/92M.ckpt

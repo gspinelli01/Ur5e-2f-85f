@@ -9,16 +9,17 @@ from multi_task_il.datasets.savers import Trajectory
 import numpy as np
 import copy
 from torchvision.transforms import ToTensor, Normalize
+import cv2
 
 
 class MosaicController():
 
-    ACTION_RANGES = np.array([[-0.35,  0.25],
-                              [-0.30,  0.30],
-                              [0.60,  1.20],
-                              [-3.14,  3.14911766],
+    ACTION_RANGES = np.array([[-0.35, 0.35],
+                              [0.2, 0.9],
+                              [-0.1, 0.2],
                               [-3.14911766, 3.14911766],
-                              [-3.14911766,  3.14911766]])
+                              [-3.14911766, 3.14911766],
+                              [-3.14911766, 3.14911766]])
 
     def __init__(self,
                  conf_file_path: str,
@@ -47,6 +48,25 @@ class MosaicController():
                                            task_name,
                                            variation_number,
                                            trj_number)
+
+        print("Current task to execute")
+        img_h = self._context[0].shape[0]
+        img_w = self._context[0].shape[1]
+        row = 0
+        col = 0
+        background_color = (255, 255, 255)  # White color
+        image = np.full((2 * img_h, 2 * img_w, 3),
+                        background_color, dtype=np.uint8)
+        for t in range(4):
+            row = t // 2
+            col = t % 2
+            image[row * img_h:(row + 1) * img_h, col *
+                  img_w:(col + 1) * img_w, :] = self._context[t][:, :, ::-1]
+
+        cv2.imshow("command", image)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
         # 4. Pre-process context frames
         self._context = [self.pre_process_input(
             i[:, :, ::-1]/255)[None] for i in self._context]
@@ -56,6 +76,8 @@ class MosaicController():
                 np.concatenate(self._context, 0))[None]
         else:
             self._context = torch.cat(self._context, dim=0)[None]
+
+        self._t = 0
 
     def modify_context(trj_number):
         pass
@@ -126,14 +148,23 @@ class MosaicController():
         Args:
             obs (np.array): RGB image
         """
-        # 1. Normalize image between 0,1
-        obs = copy.deepcopy(obs)/255
-        # 2. Perform Normalization
-        obs = ToTensor()(obs.copy())
+        crop_params = self._config.tasks_cfgs[self._task_name].get('crop', [
+            0, 0, 0, 0])
+        top, left = crop_params[0], crop_params[2]
+        img_height, img_width = obs.shape[0], obs.shape[1]
+        box_h, box_w = img_height - top - \
+            crop_params[1], img_width - left - crop_params[3]
 
-        obs = Normalize(mean=[0.485, 0.456, 0.406],
-                        std=[0.229, 0.224, 0.225])(obs)
-        return obs
+        cropped_img = obs[top:box_h, left:box_w]
+        cv2.imwrite(os.path.join(os.path.dirname(
+            os.path.abspath(__file__)), "cropped.png"), cropped_img)
+
+        img_res = cv2.resize(cropped_img, (180, 100))
+        cv2.imwrite(os.path.join(os.path.dirname(
+            os.path.abspath(__file__)), "resized.png"), img_res)
+
+        img_res = ToTensor()(copy.copy(img_res))
+        return img_res
 
     def _denormalize_action(self, action):
         action = np.clip(action.copy(), -1, 1)
@@ -160,25 +191,28 @@ class MosaicController():
         """
 
         # 1. Pre-process input
-        obs = self.pre_process_input(obs)[None].cuda(0)
+        # 1. Pre-process input
+        obs = self.pre_process_input(obs)
         s_t = torch.from_numpy(robot_state.astype(np.float32))[
             None][None].cuda(0)
         # 2. Run inference
-        target_obj_embedding = None
-        obs = obs[None]
+        obs = obs[None][None].cuda(0)
         # 3. Put context on GPU
         context = self._context.cuda(0)
         with torch.no_grad():
-            out = self._model(states=s_t, images=obs, context=context, eval=True,
-                              target_obj_embedding=target_obj_embedding)  # to avoid computing ATC loss
-            try:
-                target_obj_embedding = out['target_obj_embedding']
-            except:
-                pass
+            out = self._model(context=context,
+                              images=obs,
+                              states=s_t,
+                              eval=True,
+                              )
 
             action = out['bc_distrib'].sample()[0, -1].cpu().numpy()
 
-        return self.post_process_output(action)
+        action = self.post_process_output(action=action)
+        self._t += 1
+        image = np.array(np.moveaxis(
+            obs[0][0][:, :, :].cpu().numpy()*255, 0, -1), dtype=np.uint8)
+        return action, image
 
 
 if __name__ == '__main__':

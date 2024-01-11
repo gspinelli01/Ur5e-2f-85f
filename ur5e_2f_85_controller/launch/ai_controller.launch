@@ -1,10 +1,16 @@
 <launch>
     <arg name="model_folder"
-        default="/catkin_ws/src/Ur5e-2f-85f/ur5e_2f_85_controller/src/ai_controller/checkpoint/mosaic" />
+        default="/home/ciccio/Desktop/catkin_ws/src/Ur5e-2f-85f/ur5e_2f_85_controller/src/ai_controller/checkpoint/mosaic_ctod"
+    />
     <arg name="model_name"
-        default="model_save-102212.pt" />
+        default="model_save-55186.pt" />
+    <!-- <arg name="model_folder"
+    default="/home/ciccio/Desktop/catkin_ws/src/Ur5e-2f-85f/ur5e_2f_85_controller/src/ai_controller/checkpoint/mosaic"
+    />
+    <arg name="model_name"
+        default="model_save-60570.pt" /> -->
     <arg name="context_path"
-        default="/media/ciccio/Sandisk/multitask_dataset_ur/multitask_dataset_language_command" />
+        default="/home/ciccio/Desktop/catkin_ws/src/Ur5e-2f-85f/ur5e_2f_85_controller/src/ai_controller/context" />
     <arg name="task_name"
         default="pick_place" />
     <arg name="context_robot_name"
@@ -19,10 +25,10 @@
         type="Robotiq2FGripperRtuNode.py" args="/tmp/ttyUR" output="screen" required="true" /> -->
 
     <!-- Run move group-->
-    <include file="$(find ur5e_2f_85_camera_table_moveit_config)/launch/move_group.launch">
+    <!-- <include file="$(find ur5e_2f_85_camera_table_moveit_config)/launch/move_group.launch">
         <arg name="debug" default="false" />
         <arg name="load_robot_description" value="false" />
-    </include>
+    </include> -->
 
     <!-- Run camera controller -->
     <!-- <include file="$(find zed_camera_controller)/launch/zed_camera_controller.launch">
@@ -31,7 +37,7 @@
     <!-- Run ai-controller-node -->
     <node name="ai_controller_node" pkg="ur5e_2f_85_controller"
         type="ai_controller_node.py"
-        args="--model_folder  $(arg model_folder) --model_name  $(arg model_name) --context_path  $(arg context_path) --task_name  $(arg task_name) --context_robot_name  $(arg context_robot_name) --variation_number $(arg variation_number) --trj_number $(arg trj_number)"
+        args="--model_folder  $(arg model_folder) --model_name  $(arg model_name) --context_path  $(arg context_path) --task_name  $(arg task_name) --context_robot_name  $(arg context_robot_name) --variation_number $(arg variation_number) --trj_number $(arg trj_number) "
         output="screen"
         required="true">
     </node>

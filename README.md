@@ -122,6 +122,7 @@ roslaunch zed_camera_controller zed_camera_controller.launch
 roslaunch ur5e_2f_85_teleoperation ur5e_teleoperation.launch 
 
 # 4. Run dataset collector
+roslaunch dataset_collector dataset_collector.launch 
 
 
 ```
@@ -145,4 +146,66 @@ docker network create --subnet=192.168.56.0/24 ursim_net
 # Run Docker
 docker run --rm --name ursim_container -it --net ursim_net --ip 192.168.56.101 -e ROBOT_MODEL=UR5 ursim_docker
 
+```
+
+# How to run AI Controller module
+
+# Dependencies
+# 1. Create a conda-environment
+```bash
+conda create -n ros_multi_task_lfd python=3.8
+conda activate multi_task_lfd
+```
+# 2. Install dependencies
+```bash
+# 1. Torch
+pip install --user torch==1.13.1+cu117 torchvision==0.9.1 -f https://download.pytorch.org/whl/torch_stable.html
+
+# 2. Repositories
+# cd to Multi-Task-LFD-Framework
+echo export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/$USER/.mujoco/mujoco210/bin:/usr/local/cuda-12.1/lib64/:/usr/lib/nvidia-000 >>/home/$USER/.bashrc
+source /home/$USER/.bashrc
+pip install  mujoco-py
+cd repo/robosuite
+pip install  -e .
+cd repo/Multi-Task-LFD-Training-Framework/training
+pip install  -e .
+## 2. Install tasks
+cd repo/Multi-Task-LFD-Training-Framework/tasks
+pip install  -e .
+pip install  -e .
+pip install einops hydra-core
+```
+
+# 1. Run ur-drivers
+```bash
+roslaunch ur_robot_driver ur5e_bringup.launch robot_ip:=192.168.1.100 kinematics_config:="/home/ciccio/.ros/real_robot_calibration.yaml" use_tool_communication:=true tool_voltage:=24 tool_parity:=0 tool_baud_rate:=115200 tool_stop_bits:=1 tool_rx_idle_chars:=1.5 tool_tx_idle_chars:=3.5 tool_device_name:=/tmp/ttyUR robot_description_file:="/home/ciccio/Desktop/catkin_ws/src/Ur5e-2f-85f/ur5e_2f_85_description/launch/load_ur5e_2f_85.launch"
+```
+
+# 2. Run controller
+```bash
+roslaunch ur5e_2f_85_controller controller.launch 
+```
+
+```bash
+roslaunch ur5e_2f_85_camera_table_moveit_config moveit_rviz.launch 
+``` 
+
+<!-- ```bash
+roslaunch ur5e_2f_85_camera_table_moveit_config move_group.launch load_robot_descriptio:=false
+```--->
+
+# 2.1. Run gripper driver
+```bash
+rosrun robotiq_2f_gripper_control Robotiq2FGripperRtuNode.py /tmp/ttyUR
+```
+
+# 2.2. Run camera controller
+```bash
+roslaunch zed_camera_controller zed_camera_controller.launch
+```
+
+# Procedure for camera calibration
+```bash
+roslaunch zed_camera_controller zed_camera_controller.launch
 ```

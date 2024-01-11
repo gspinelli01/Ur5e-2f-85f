@@ -81,7 +81,7 @@ class MoveGroupPythonInterface(object):
             queue_size=20,
         )
 
-        # move_group.set_pose_reference_frame('base_link')
+        move_group.set_pose_reference_frame('base_link')
         planning_frame = move_group.get_planning_frame()
         print("============ Planning frame: %s" % planning_frame)
 
@@ -158,8 +158,8 @@ class MoveGroupPythonInterface(object):
         self.display_trajectory_publisher.publish(display_trj)
 
         if fraction == 1:
-            press = input("Y to perform planned trajectory:")
-            if press == 'Y' or press == 'y':
+            # press = input("Y to perform planned trajectory:")
+            if True:  # press == 'Y' or press == 'y':
                 success = move_group.execute(plan, wait=True)
 
                 # move_group.set_pose_target(pose_goal)

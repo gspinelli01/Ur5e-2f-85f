@@ -159,6 +159,10 @@ class MoveGroupPythonInterface(object):
 
         if fraction == 1:
             # press = input("Y to perform planned trajectory:")
+            enter = None
+            # while enter != "":
+            #     rospy.loginfo("Press enter to go to next wp: ")
+            #     enter = input()
             if True:  # press == 'Y' or press == 'y':
                 success = move_group.execute(plan, wait=True)
 

@@ -191,10 +191,6 @@ roslaunch ur5e_2f_85_controller controller.launch
 roslaunch ur5e_2f_85_camera_table_moveit_config moveit_rviz.launch 
 ``` 
 
-<!-- ```bash
-roslaunch ur5e_2f_85_camera_table_moveit_config move_group.launch load_robot_descriptio:=false
-```--->
-
 # 2.1. Run gripper driver
 ```bash
 rosrun robotiq_2f_gripper_control Robotiq2FGripperRtuNode.py /tmp/ttyUR

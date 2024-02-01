@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import rospy
-from ai_controller.mosaic_controller import MosaicController
-from ai_controller.ctod_controller import CTODController
+from ai_controller.ctod import CTOD
 from cv_bridge import CvBridge
 import cv2
 from zed_camera_controller.srv import *
@@ -159,24 +158,6 @@ def go_home(move_group):
             "Robot in home position, ready to get a new trajectory")
 
 
-def _convert_from_sim_space_to_real_sapce(sim_pos, sim_orientation):
-    """Perform the conversion from pose obtained in simulated space into real-world space
-
-    Args:
-        sim_pos (_type_): _description_
-        sim_orientation (_type_): _description_
-    """
-    R_sim_to_desired = _quat2mat(sim_orientation)
-    sim_pos = np.reshape(sim_pos, (3, 1))
-    T_sim_to_desired_sim = np.vstack(
-        (np.hstack((R_sim_to_desired, sim_pos)), np.array([[0, 0, 0, 1]])))
-    T_world_to_desired = (
-        T_REAL_TO_SIM @ T_sim_to_desired_sim)  @ T_G_SIM_TO_G_REAL_SIM
-    desired_pos = T_world_to_desired[:-1, 3]
-    desired_orientation = _mat2quat(T_world_to_desired[:-1, :-1])
-    return desired_pos, desired_orientation
-
-
 if __name__ == '__main__':
 
     import argparse
@@ -217,26 +198,16 @@ if __name__ == '__main__':
 
     rospy.loginfo(
         f"Loading the following AI-controller {model_folder.split('/')[-1]} - Step {model_file_path.split('/')[-1]}")
-    if "mosaic" in model_folder and "ctod" not in model_folder:
-        ai_controller = MosaicController(
-            conf_file_path=conf_file_path,
-            model_file_path=model_file_path,
-            context_path=context_path,
-            context_robot_name=context_robot_name,
-            task_name=task_name,
-            variation_number=variation_number,
-            trj_number=trj_number,
-            camera_name='camera_front')
-    else:
-        ai_controller = CTODController(
-            conf_file_path=conf_file_path,
-            model_file_path=model_file_path,
-            context_path=context_path,
-            context_robot_name=context_robot_name,
-            task_name=task_name,
-            variation_number=variation_number,
-            trj_number=trj_number,
-            camera_name='camera_front')
+
+    ai_controller = CTOD(
+        conf_file_path=conf_file_path,
+        model_file_path=model_file_path,
+        context_path=context_path,
+        context_robot_name=context_robot_name,
+        task_name=task_name,
+        variation_number=variation_number,
+        trj_number=trj_number,
+        camera_name='camera_front')
 
     # 2. Camera srv proxy
     # camera client service
@@ -331,31 +302,11 @@ if __name__ == '__main__':
                 (pos, aa, [finger_position]))
 
             # 3. Run action inference
-            action, predicted_bb = ai_controller.get_action(obs=color_cv_image,
-                                                            robot_state=state)
+            _, predicted_bb = ai_controller.get_bb(obs=color_cv_image,
+                                                   robot_state=state)
 
             cv2.imshow("Predicted bb", predicted_bb)
             cv2.waitKey(500)
-            # 4. Perform action
-            # 4.1 Decopose action
-            desired_position = action[:3]
-            desired_orientation = _axisangle2quat(vec=action[3:6])
-            predicted_gripper = int(action[-1]*255)
-            gripper_finger_pos = predicted_gripper
-            # if predicted_gripper > 0.75:
-            #     gripper_finger_pos = 255
-            # else:
-            #     gripper_finger_pos = 0
-            # 4.2 Call controller
-            rospy.loginfo(
-                f"Predicted action: {desired_position}, {desired_orientation}, {gripper_finger_pos}")
-            # desired_position, desired_orientation = _convert_from_sim_space_to_real_sapce(
-            #     sim_pos=desired_position, sim_orientation=desired_orientation)
-            rospy.loginfo(
-                f"Real-world desired pose: {desired_position}, {desired_orientation}, {gripper_finger_pos}")
-            move_group.go_to_pose_goal(position=desired_position,
-                                       orientation=desired_orientation,
-                                       gripper_pos=gripper_finger_pos)
 
             rospy.Rate(1).sleep()
             t += 1

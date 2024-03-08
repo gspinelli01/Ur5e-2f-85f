@@ -262,25 +262,6 @@ if __name__ == '__main__':
 
     # cv2.namedWindow("Predicted bb", cv2.WINDOW_NORMAL)
 
-    # 3. Initialise robot-gripper
-    gripper = Robotiq2f85()
-    move_group = MoveGroupPythonInterface(gripper_ref=gripper)
-
-    # 4. Init tf listener for TCP Pose
-    tfBuffer = tf2_ros.Buffer()
-    listener = tf2_ros.TransformListener(tfBuffer)
-    exception = True
-    while exception:
-        try:
-            # Get TCP Pose
-            tcp_pose = tfBuffer.lookup_transform(
-                'base_link', 'tcp_link', rospy.Time())
-            rospy.logdebug(f"TCP Pose {tcp_pose}")
-            exception = False
-        except ((tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException)) as e:
-            exception = True
-            rospy.logerr(e)
-
     # moveit service
     home_pos = [1.636146903038025, -1.7759367428221644, 2.2431824843036097, -
                 2.017546316186422, 4.7087507247924805, 0.002162999240681529]
@@ -288,7 +269,6 @@ if __name__ == '__main__':
     enter = None
 
     while True:
-        go_home(move_group=move_group)
         valid = False
         while not valid:
             try:
@@ -310,59 +290,23 @@ if __name__ == '__main__':
             trj_number=trj_number)
         t = 0
         trj = None
-        # with open("/media/ciccio/Sandisk/real-world-dataset/only_frontal/reduced_space/pick_place/task_00/traj000.pkl", "rb") as f:
-        #     sample = pkl.load(f)
-        # trj = sample['traj']
+        with open("/media/ciccio/Sandisk/real-world-dataset/only_frontal/reduced_space/pick_place/task_00/traj073.pkl", "rb") as f:
+            sample = pkl.load(f)
+        trj = sample['traj']
         while t < max_T:
-            # 1. Get current observation
-            env_frames = env_camera_service_client()
-            color_cv_image = bridge.imgmsg_to_cv2(
-                env_frames.color_frames[0],
-                desired_encoding='rgba8')
-            color_cv_image = cv2.cvtColor(
-                np.array(color_cv_image), cv2.COLOR_RGBA2RGB)
 
             if trj is not None:
                 color_cv_image = np.array(trj.get(
                     t)['obs'][f'camera_front_image'])
                 gt_action = trj.get(
                     t)['action']
+                state = np.concatenate((trj.get(
+                    t)['joint_pos'], trj.get(
+                    t)['joint_vel']))
 
             # resize image
             cv2.imwrite(os.path.join(os.path.dirname(
                 os.path.abspath(__file__)), "original.png"), color_cv_image)
-            # dim = (180, 100)
-            # color_cv_image = cv2.resize(
-            #     color_cv_image, dim, interpolation=cv2.INTER_AREA)
-            # cv2.imwrite("/catkin_ws/src/Ur5e-2f-85f/resized.png", color_cv_image)
-            # 2. Get current robot state
-            # 2.1 Get ee_pose with respect to /base_link
-            tcp_pose = tfBuffer.lookup_transform(
-                'base_link', 'tcp_link', rospy.Time())
-            pos = np.array(
-                [tcp_pose.transform.translation.x,
-                 tcp_pose.transform.translation.y,
-                 tcp_pose.transform.translation.z])
-            quat = np.array([tcp_pose.transform.rotation.x,
-                            tcp_pose.transform.rotation.y,
-                            tcp_pose.transform.rotation.z,
-                            tcp_pose.transform.rotation.w])
-            aa = _quat2axisangle(quat)
-            # 2.2 Get Gripper joints positions
-            # finger_position = gripper.get_state()['finger_position']
-            # scaled_finger_position = finger_position/255
-            # left_joint = np.array(scaled_finger_position)
-            # right_joint = np.array(-scaled_finger_position)
-
-            # 2.3 Get Joints position and velocities
-            data = rospy.wait_for_message(
-                '/joint_states',
-                JointState)
-
-            joint_pos = np.array(data.position)
-            joint_vel = np.array(data.velocity)
-            # print(f"{joint_pos} - {joint_vel}")
-            state = np.concatenate((joint_pos, joint_vel))
 
             # 3. Run action inference
             action, predicted_bb = ai_controller.get_action(obs=color_cv_image,
@@ -378,28 +322,16 @@ if __name__ == '__main__':
                 #                              y_pred=np.array([action[:3]]))
                 # error_t = np.linalg.norm(
                 #     [gt_action[:3]] - np.array([action[:3]]), axis=1)
-                error_t = gt_action[2]-action[2]
+                error_t = gt_action[:2]-action[:2]
                 rospy.loginfo(f"Error {error_t}")
             # _axisangle2quat(vec=action[3:6])
             desired_orientation = np.array([0.999, 0.032, 0.002, 0.010])
             predicted_gripper = int(action[-1]*255)
             gripper_finger_pos = predicted_gripper
-            # if predicted_gripper > 0.75:
-            #     gripper_finger_pos = 255
-            # else:
-            #     gripper_finger_pos = 0
-            # 4.2 Call controller
             rospy.loginfo(
                 f"Predicted action: {desired_position}, {desired_orientation}, {gripper_finger_pos}")
-            # desired_position, desired_orientation = _convert_from_sim_space_to_real_sapce(
-            #     sim_pos=desired_position, sim_orientation=desired_orientation)
-            rospy.loginfo(
-                f"Real-world desired pose: {desired_position}, {desired_orientation}, {gripper_finger_pos}")
-            move_group.go_to_pose_goal(position=desired_position,
-                                       orientation=desired_orientation,
-                                       gripper_pos=gripper_finger_pos)
 
-            rospy.Rate(1).sleep()
+            rospy.Rate(0.5).sleep()
             t += 1
 
         rospy.loginfo(

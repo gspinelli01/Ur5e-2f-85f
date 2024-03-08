@@ -21,7 +21,7 @@ T_G_SIM_TO_G_REAL_SIM = np.array([[0, 1, 0, 0.02],
                                   [-1, 0, 0, 0.0],
                                   [0, 0, 1, 0],
                                   [0, 0, 0, 1],])
-max_T = 100
+max_T = 200
 
 
 def _axisangle2quat(vec):

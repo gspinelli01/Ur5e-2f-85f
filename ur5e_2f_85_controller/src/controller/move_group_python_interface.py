@@ -110,7 +110,7 @@ class MoveGroupPythonInterface(object):
         self.eef_link = eef_link
         self.group_names = group_names
 
-        if gripper_ref is None:
+        if gripper_ref is not None:
             self._gripper = gripper_ref
         else:
             self._gripper = Robotiq2f85()

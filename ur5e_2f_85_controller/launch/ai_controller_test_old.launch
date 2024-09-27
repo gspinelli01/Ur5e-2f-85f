@@ -3,7 +3,7 @@
         default="/home/ciccio/Desktop/catkin_ws/src/Ur5e-2f-85f/ur5e_2f_85_controller/src/ai_controller/checkpoint/mosaic_ctod"
     />
     <arg name="model_name"
-        default="model_save-34530.pt" />
+        default="model_save-209482.pt" />
     <!-- <arg name="model_folder"
     default="/home/ciccio/Desktop/catkin_ws/src/Ur5e-2f-85f/ur5e_2f_85_controller/src/ai_controller/checkpoint/mosaic"
     />
@@ -38,7 +38,7 @@
 
     <!-- Run ai-controller-node -->
     <node name="test_node" pkg="ur5e_2f_85_controller"
-        type="test_validation.py"
+        type="test_node.py"
         args="--model_folder  $(arg model_folder) --model_name  $(arg model_name) --context_path  $(arg context_path) --task_name  $(arg task_name) --context_robot_name  $(arg context_robot_name) --variation_number $(arg variation_number) --trj_number $(arg trj_number) --debug"
         output="screen"
         required="true">

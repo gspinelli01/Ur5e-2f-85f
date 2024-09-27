@@ -9,17 +9,12 @@ from multi_task_il.datasets.savers import Trajectory
 import numpy as np
 import copy
 from torchvision.transforms import ToTensor, Normalize
+from torchvision.transforms.functional import resized_crop
 import cv2
 
 
 class MosaicController():
 
-    ACTION_RANGES = np.array([[-0.35, 0.35],
-                              [0.2, 0.9],
-                              [-0.1, 0.2],
-                              [-3.14911766, 3.14911766],
-                              [-3.14911766, 3.14911766],
-                              [-3.14911766, 3.14911766]])
 
     def __init__(self,
                  conf_file_path: str,
@@ -43,12 +38,27 @@ class MosaicController():
         self._variation_number = variation_number
         self._trj_number = trj_number
         self._camera_name = camera_name
-        self._context = self._load_context(context_path,
-                                           context_robot_name,
-                                           task_name,
+        # self._context = self._load_context(context_path,
+        #                                    context_robot_name,
+        #                                    task_name,
+        #                                    variation_number,
+        #                                    trj_number)
+
+        self._t = 0
+        self._action_ranges = np.array(
+            self._config.dataset_cfg.normalization_ranges)
+        print(f"Action ranges {self._action_ranges}")
+
+    def modify_context(self, variation_number, trj_number):
+        self._context = self._load_context(self._context_path,
+                                           self._context_robot_name,
+                                           self._task_name,
                                            variation_number,
                                            trj_number)
+        self.show_context()
+        self.pre_process_context()
 
+    def show_context(self):
         print("Current task to execute")
         img_h = self._context[0].shape[0]
         img_w = self._context[0].shape[1]
@@ -63,13 +73,15 @@ class MosaicController():
             image[row * img_h:(row + 1) * img_h, col *
                   img_w:(col + 1) * img_w, :] = self._context[t][:, :, ::-1]
 
-        cv2.imshow("command", image)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        cv2.imshow("Image", image)
+        cv2.setWindowProperty("Image", cv2.WND_PROP_TOPMOST, 1)
+        cv2.waitKey(2000)
 
+
+    def pre_process_context(self):
         # 4. Pre-process context frames
         self._context = [self.pre_process_input(
-            i[:, :, ::-1]/255)[None] for i in self._context]
+            i[:, :, ::-1])[0][None] for i in self._context]
 
         if isinstance(self._context[0], np.ndarray):
             self._context = torch.from_numpy(
@@ -77,10 +89,14 @@ class MosaicController():
         else:
             self._context = torch.cat(self._context, dim=0)[None]
 
-        self._t = 0
-
-    def modify_context(trj_number):
-        pass
+    def modify_context(self, variation_number, trj_number):
+        self._context = self._load_context(self._context_path,
+                                           self._context_robot_name,
+                                           self._task_name,
+                                           variation_number,
+                                           trj_number)
+        self.show_context()
+        self.pre_process_context()
 
     def _load_context(self, context_path, context_robot_name, task_name, variation_number, trj_number):
         # 1. Load pkl file
@@ -148,29 +164,90 @@ class MosaicController():
         Args:
             obs (np.array): RGB image
         """
-        crop_params = self._config.tasks_cfgs[self._task_name].get('crop', [
+
+        """applies to every timestep's RGB obs['camera_front_image']"""
+        img_height, img_width = obs.shape[:2]
+        """applies to every timestep's RGB obs['camera_front_image']"""
+        crop_params = self._config.tasks_cfgs[self._task_name].get('demo_crop', [
             0, 0, 0, 0])
         top, left = crop_params[0], crop_params[2]
         img_height, img_width = obs.shape[0], obs.shape[1]
         box_h, box_w = img_height - top - \
             crop_params[1], img_width - left - crop_params[3]
 
-        cropped_img = obs[top:box_h, left:box_w]
+        obs = ToTensor()(obs.copy())
+        # ---- Resized crop ----#
+        img_res = resized_crop(obs, top=top, left=left, height=box_h,
+                               width=box_w, size=(100, 180))
         cv2.imwrite(os.path.join(os.path.dirname(
-            os.path.abspath(__file__)), "cropped.png"), cropped_img)
+            os.path.abspath(__file__)), "resize_cropped.png"), np.moveaxis(
+            img_res.numpy()*255, 0, -1))
+        adj_bb = None
+        # if bb is not None:
+        #     adj_bb = self.adjust_bb(bb,
+        #                             obs,
+        #                             cropped_img,
+        #                             img_res,
+        #                             img_width=img_width,
+        #                             img_height=img_height,
+        #                             top=top,
+        #                             left=left,
+        #                             box_w=box_w,
+        #                             box_h=box_h)
+        #     cv2.imwrite("cropped.png", obs)
+        return img_res, adj_bb
 
-        img_res = cv2.resize(cropped_img, (180, 100))
+    def pre_process_obs(self, obs: np.array, bb: np.array = None):
+        crop_params = self._config.tasks_cfgs[self._task_name].get('agent_crop', [
+            0, 0, 0, 0])
+
+        top, left = crop_params[0], crop_params[2]
+        img_height, img_width = obs.shape[0], obs.shape[1]
+        box_h, box_w = img_height - top - \
+            crop_params[1], img_width - left - crop_params[3]
+
+        # cropped_img = obs[top:box_h, left:box_w]
+        # cv2.imwrite(os.path.join(os.path.dirname(
+        #     os.path.abspath(__file__)), "cropped.jpg"), cropped_img)
+
+        # img_res = cv2.resize(cropped_img, (180, 100))
+
+        # img_res_scaled = ToTensor()(img_res.copy())
+
+        top, left = crop_params[0], crop_params[2]
+        img_height, img_width = obs.shape[0], obs.shape[1]
+        box_h, box_w = img_height - top - \
+            crop_params[1], img_width - left - crop_params[3]
+
+        img_res_scaled = ToTensor()(obs)
+        # ---- Resized crop ----#
+        img_res_scaled = resized_crop(img_res_scaled, top=top, left=left, height=box_h,
+                                      width=box_w, size=(100, 180))
+
         cv2.imwrite(os.path.join(os.path.dirname(
-            os.path.abspath(__file__)), "resized.png"), img_res)
+            os.path.abspath(__file__)), "camera_obs_resized.png"), np.array(np.moveaxis(
+                copy.deepcopy(img_res_scaled).cpu().numpy()*255, 0, -1), dtype=np.uint8))
+        adj_bb = None
+        # if bb is not None:
+        #     adj_bb = self.adjust_bb(bb,
+        #                             obs,
+        #                             cropped_img,
+        #                             img_res,
+        #                             img_width=img_width,
+        #                             img_height=img_height,
+        #                             top=top,
+        #                             left=left,
+        #                             box_w=box_w,
+        #                             box_h=box_h)
+        #     cv2.imwrite("cropped.png", obs)
+        return img_res_scaled, adj_bb
 
-        img_res = ToTensor()(copy.copy(img_res))
-        return img_res
 
     def _denormalize_action(self, action):
         action = np.clip(action.copy(), -1, 1)
-        for d in range(MosaicController.ACTION_RANGES.shape[0]):
+        for d in range(self._action_ranges.shape[0]):
             action[d] = (0.5 * (action[d] + 1) *
-                         (MosaicController.ACTION_RANGES[d, 1] - MosaicController.ACTION_RANGES[d, 0])) + MosaicController.ACTION_RANGES[d, 0]
+                         (self._action_ranges[d, 1] - self._action_ranges[d, 0])) + self._action_ranges[d, 0]
         return action
 
     def post_process_output(self, action: np.array):
@@ -191,8 +268,10 @@ class MosaicController():
         """
 
         # 1. Pre-process input
-        # 1. Pre-process input
-        obs = self.pre_process_input(obs)
+        obs, bb = self.pre_process_obs(obs)
+        cv2.imwrite(os.path.join(os.path.dirname(
+            os.path.abspath(__file__)), "camera_obs.png"), np.array(np.moveaxis(
+                copy.deepcopy(obs).cpu().numpy()*255, 0, -1), dtype=np.uint8))
         s_t = torch.from_numpy(robot_state.astype(np.float32))[
             None][None].cuda(0)
         # 2. Run inference
@@ -212,7 +291,14 @@ class MosaicController():
         self._t += 1
         image = np.array(np.moveaxis(
             obs[0][0][:, :, :].cpu().numpy()*255, 0, -1), dtype=np.uint8)
-        return action, image
+        
+        cv2.imwrite(os.path.join(os.path.dirname(
+                        os.path.abspath(__file__)), "image.png"), image)
+        cv2.imshow("Image", image)
+        cv2.setWindowProperty("Image", cv2.WND_PROP_TOPMOST, 1)
+        cv2.waitKey(50)
+        
+        return action, None, image
 
 
 if __name__ == '__main__':

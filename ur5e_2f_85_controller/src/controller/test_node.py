@@ -1,23 +1,31 @@
 #!/usr/bin/env python3
-import rospy
-from ai_controller.mosaic_controller import MosaicController
-from ai_controller.ctod_controller import CTODController
-from cv_bridge import CvBridge
 import cv2
-from zed_camera_controller.srv import *
-import os
-from controller.robotiq2f_85 import Robotiq2f85
-import tf2_ros
-import numpy as np
-import math
-from move_group_python_interface import MoveGroupPythonInterface
-from ur5e_2f_85_controller.srv import GoToJoint, GoToJointRequest
-from sensor_msgs.msg import JointState
-import pickle as pkl
-import random
-from sklearn.metrics import mean_squared_error
+cv2.namedWindow('Image', cv2.WINDOW_NORMAL)
+from pynput import keyboard
+import json
+from multi_task_il.datasets.savers import Trajectory
 import torch
+from sklearn.metrics import mean_squared_error
+import random
+import pickle as pkl
+from sensor_msgs.msg import JointState
+from move_group_python_interface import MoveGroupPythonInterface
+import math
+import numpy as np
+import tf2_ros
+import os
+from zed_camera_controller.srv import *
+from cv_bridge import CvBridge
+from ai_controller.ctod_controller import CTODController
+from ai_controller.mosaic_controller import MosaicController
+from ai_controller.kp_controller import KPController
+import rospy
+from pynput import keyboard
+from copy import deepcopy
+print(f"cv2 file {cv2.__file__}")
 
+
+STOP = False
 EPS = np.finfo(float).eps * 4.0
 T_REAL_TO_SIM = np.array([[0, -1, 0, 0.40],
                           [1, 0, 0, -0.47],
@@ -27,7 +35,18 @@ T_G_SIM_TO_G_REAL_SIM = np.array([[0, 1, 0, 0.02],
                                   [-1, 0, 0, 0.0],
                                   [0, 0, 1, 0],
                                   [0, 0, 0, 1],])
-max_T = 200
+max_T = 90
+
+
+def seed_everything(seed=42):
+    print(f"Cuda available {torch.cuda.is_available()}")
+    random.seed(seed)
+    np.random.seed(seed)
+    os.environ["PYTHONHASHSEED"] = str(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
 
 
 def _axisangle2quat(vec):
@@ -184,6 +203,89 @@ def _convert_from_sim_space_to_real_sapce(sim_pos, sim_orientation):
     return desired_pos, desired_orientation
 
 
+def check_pick(predicited_gripper_pos, current_gripper_pos):
+    if predicited_gripper_pos == 255 and current_gripper_pos < 230:
+        return True
+    return False
+
+
+def save_record(save_path, model_name, task_name, task_number, variation, trj, context, cnt, res_dict):
+    res_path = os.path.join(save_path, "test_res", model_name, task_name, 'task_{:02d}'.format(task_number))
+    os.makedirs(res_path, exist_ok=True)
+
+    rospy.loginfo(f"Saving res dict")
+    json_file_path = os.path.join(res_path, f"traj{cnt}.json")
+    json.dump(res_dict, open(json_file_path, 'w'))
+
+    rospy.loginfo(f"Saving trajectory and context")
+    pkl.dump(trj, open(
+        res_path+f'/traj{cnt}.pkl', 'wb'))
+    pkl.dump(context, open(
+        res_path+f'/context{cnt}.pkl', 'wb'))
+
+
+def on_press(key):
+    rospy.loginfo(f"Pressing key {key.char}")
+    if key.char == 'r':
+        rospy.loginfo(f"Reset requested")
+        global STOP
+        STOP = True
+        
+        go_home()
+        
+
+def write_summary(model_name, task_number, variation_number):
+    rospy.loginfo(
+    f"Summary task: {task_number} - Variation {variation_number}")
+    key = ''   
+    valid = False
+    while not valid:
+        try:
+            rospy.loginfo("Object reached? [1: True, 0: False]: ")
+            key = input()
+            reached = int(key)
+            valid = True
+        except:
+            pass
+    key = ''   
+    valid = False
+    while not valid:
+        try:
+            rospy.loginfo("Object picked? [1: True, 0: False]: ")
+            key = input()
+            picked = int(key)
+            valid = True
+        except:
+            pass
+    key = ''   
+    valid = False
+    while not valid:
+        try:
+            rospy.loginfo("Object placed? [1: True, 0: False]: ")
+            key = input()
+            placed = int(key)
+            valid = True
+        except:
+            pass
+
+    res_dict = dict()
+    res_dict['success'] = placed
+    res_dict['reached'] = reached
+    res_dict['picked'] = picked
+    res_dict['variation_id'] = variation_number
+
+    save_record(save_path=args.save_path,
+                model_name=model_name,
+                task_name=task_name,
+                task_number=task_number,
+                variation=variation_number,
+                trj=traj,
+                context=ai_controller._context,
+                res_dict=res_dict,
+                cnt=cnt)
+
+    
+
 if __name__ == '__main__':
 
     import argparse
@@ -195,6 +297,9 @@ if __name__ == '__main__':
     parser.add_argument("--context_robot_name", type=str, default=None)
     parser.add_argument("--variation_number", type=int, default=None)
     parser.add_argument("--trj_number", type=int, default=None)
+    parser.add_argument("--save_path", type=str,
+                        default="/media/ciccio/Sandisk/")
+    parser.add_argument("--correct_sample", action='store_true')
     parser.add_argument("--debug", action="store_true")
 
     args, unknown = parser.parse_known_args()
@@ -204,23 +309,21 @@ if __name__ == '__main__':
     # 1. Load Model
     if args.debug:
         import debugpy
-        debugpy.listen(('0.0.0.0', 5678))
+        debugpy.listen(('0.0.0.0', 5679))
         print("Waiting for debugger attach")
         debugpy.wait_for_client()
 
-    random.seed(42)
-    np.random.seed(42)
-    # torch.manual_seed(42)
-    # os.environ["PYTHONHASHSEED"] = "42"
-    # torch.backends.cudnn.deterministic = True
-    # torch.backends.cudnn.benchmark = False
-    # torch.set_num_threads(1)
+    seed_everything()
+    cv2.namedWindow('Image', cv2.WINDOW_NORMAL)
+    cv2.moveWindow('Image', 25, 350)
 
     current_file_path = os.path.dirname(os.path.abspath(__file__))
     model_folder = args.model_folder
     model_name = args.model_name
+    model_char = model_name.split("model_save_")[-1].split("-")[0]
+    rospy.loginfo(f"Testing model with char {model_char}")
     conf_file_path = os.path.join(
-        current_file_path, model_folder, "config.yaml")
+        current_file_path, model_folder, f"config_{model_char}.yaml")
     model_file_path = os.path.join(
         current_file_path, model_folder, model_name)
     # context path
@@ -229,10 +332,10 @@ if __name__ == '__main__':
     task_name = args.task_name
     variation_number = args.variation_number
     trj_number = args.trj_number
-
+    
     rospy.loginfo(
         f"Loading the following AI-controller {model_folder.split('/')[-1]} - Step {model_file_path.split('/')[-1]}")
-    if "mosaic" in model_folder and "ctod" not in model_folder:
+    if "mosaic" in model_folder and "ctod" not in model_folder and 'kp' not in model_folder:
         ai_controller = MosaicController(
             conf_file_path=conf_file_path,
             model_file_path=model_file_path,
@@ -242,8 +345,18 @@ if __name__ == '__main__':
             variation_number=variation_number,
             trj_number=trj_number,
             camera_name='camera_front')
-    else:
+    elif "mosaic_ctod" in model_folder:
         ai_controller = CTODController(
+            conf_file_path=conf_file_path,
+            model_file_path=model_file_path,
+            context_path=context_path,
+            context_robot_name=context_robot_name,
+            task_name=task_name,
+            variation_number=variation_number,
+            trj_number=trj_number,
+            camera_name='camera_front')
+    elif "mosaic_kp" in model_folder:
+        ai_controller = KPController(
             conf_file_path=conf_file_path,
             model_file_path=model_file_path,
             context_path=context_path,
@@ -261,16 +374,13 @@ if __name__ == '__main__':
     bridge = CvBridge()
 
     # cv2.namedWindow("Predicted bb", cv2.WINDOW_NORMAL)
-
-    # 3. Initialise robot-gripper
-    gripper = Robotiq2f85()
-    move_group = MoveGroupPythonInterface(gripper_ref=gripper)
+    move_group = MoveGroupPythonInterface()
 
     # 4. Init tf listener for TCP Pose
     tfBuffer = tf2_ros.Buffer()
     listener = tf2_ros.TransformListener(tfBuffer)
     exception = True
-    while exception:
+    while exception:    
         try:
             # Get TCP Pose
             tcp_pose = tfBuffer.lookup_transform(
@@ -281,13 +391,14 @@ if __name__ == '__main__':
             exception = True
             rospy.logerr(e)
 
-    # moveit service
-    home_pos = [1.636146903038025, -1.7759367428221644, 2.2431824843036097, -
-                2.017546316186422, 4.7087507247924805, 0.002162999240681529]
-    # wait for going in home position
     enter = None
-
+    cnt = 263
+    
     while True:
+        rospy.loginfo(f"Starting rollout number {cnt}")
+        if isinstance(ai_controller, KPController):
+            ai_controller.change_phase(first_phase=True)
+        
         go_home(move_group=move_group)
         valid = False
         while not valid:
@@ -296,6 +407,12 @@ if __name__ == '__main__':
                 valid = True
             except:
                 pass
+        
+        if task_number == -1:
+            rospy.loginfo("Exit demo mode")
+            rospy.signal_shutdown("User requested signal_shutdown")
+
+        
         valid = False
         while not valid:
             try:
@@ -308,99 +425,212 @@ if __name__ == '__main__':
         ai_controller.modify_context(
             variation_number=task_number,
             trj_number=trj_number)
+
         t = 0
+        picked_old = False
+        picked = False
         trj = None
-        # with open("/media/ciccio/Sandisk/real-world-dataset/only_frontal/reduced_space/pick_place/task_00/traj000.pkl", "rb") as f:
+        done = False
+        traj = Trajectory()
+        STOP = False
+        # with open("/media/ciccio/Sandisk/real-world-dataset/only_frontal/reduced_space/pick_place/task_00/traj073.pkl", "rb") as f:
         #     sample = pkl.load(f)
         # trj = sample['traj']
-        while t < max_T:
+            # Initialize the keyboard listener
+        rospy.loginfo("Starting keyboad listener")
+        listener = None
+        while t < max_T and not done and not STOP:
+            if listener is None:
+                listener = keyboard.Listener(
+                on_press=on_press)
+            else:
+                listener.stop()            
+            listener = keyboard.Listener(
+            on_press=on_press)
+            listener.start()
+        
+            obs = dict()
             # 1. Get current observation
-            env_frames = env_camera_service_client()
-            color_cv_image = bridge.imgmsg_to_cv2(
-                env_frames.color_frames[0],
-                desired_encoding='rgba8')
-            color_cv_image = cv2.cvtColor(
-                np.array(color_cv_image), cv2.COLOR_RGBA2RGB)
-
             if trj is not None:
                 color_cv_image = np.array(trj.get(
                     t)['obs'][f'camera_front_image'])
                 gt_action = trj.get(
                     t)['action']
+                next_action = trj.get(
+                    t+10)['action']
+                rospy.loginfo(f"{gt_action[:3]-next_action[:3]}")
+                state = np.concatenate((trj.get(
+                    t)['obs']['joint_pos'], trj.get(
+                    t)['obs']['joint_vel']))
+
+                data = rospy.wait_for_message(
+                    '/joint_states',
+                    JointState)
+                joint_pos = np.array(data.position)
+                joint_vel = np.array(data.velocity)
+                state_robot = np.concatenate((joint_pos, joint_vel))
+                rospy.logerr(f"\nState obs {state}\nState robot {state_robot}")
+
+            else:
+                env_frames = env_camera_service_client()
+                color_cv_image = bridge.imgmsg_to_cv2(
+                    env_frames.color_frames[0],
+                    desired_encoding='rgba8')
+                color_cv_image = cv2.cvtColor(
+                    np.array(color_cv_image), cv2.COLOR_RGBA2RGB)
+                
+                depth_cv_image = bridge.imgmsg_to_cv2(
+                                        env_frames.depth_frames[0], 
+                                        desired_encoding='passthrough')
+
+                # state = np.concatenate((trj.get(
+                #     t)['obs']['joint_pos'], trj.get(
+                #     t)['obs']['joint_vel']))
+                # rospy.loginfo(f"Trj state {trj.get(t)['obs']['joint_pos']}")
+                data = rospy.wait_for_message(
+                    '/joint_states',
+                    JointState)
+                joint_pos = np.array(data.position)
+                shoulder_pan_joint_pos = joint_pos[2]
+                joint_pos[2] = joint_pos[0]
+                joint_pos[0] = shoulder_pan_joint_pos
+                if t == 0:
+                    gripper_state = [0]
+                else:
+                    gripper_state = [action[-1]]
+                # rospy.loginfo(f"Robot state {joint_pos}")
+                # joint_vel = np.array(data.velocity)
+                # state = np.concatenate((joint_pos, joint_vel))
+                state = np.concatenate((joint_pos, gripper_state))
 
             # resize image
             cv2.imwrite(os.path.join(os.path.dirname(
                 os.path.abspath(__file__)), "original.png"), color_cv_image)
-            # dim = (180, 100)
-            # color_cv_image = cv2.resize(
-            #     color_cv_image, dim, interpolation=cv2.INTER_AREA)
-            # cv2.imwrite("/catkin_ws/src/Ur5e-2f-85f/resized.png", color_cv_image)
-            # 2. Get current robot state
-            # 2.1 Get ee_pose with respect to /base_link
-            tcp_pose = tfBuffer.lookup_transform(
-                'base_link', 'tcp_link', rospy.Time())
-            pos = np.array(
-                [tcp_pose.transform.translation.x,
-                 tcp_pose.transform.translation.y,
-                 tcp_pose.transform.translation.z])
-            quat = np.array([tcp_pose.transform.rotation.x,
-                            tcp_pose.transform.rotation.y,
-                            tcp_pose.transform.rotation.z,
-                            tcp_pose.transform.rotation.w])
-            aa = _quat2axisangle(quat)
-            # 2.2 Get Gripper joints positions
-            # finger_position = gripper.get_state()['finger_position']
-            # scaled_finger_position = finger_position/255
-            # left_joint = np.array(scaled_finger_position)
-            # right_joint = np.array(-scaled_finger_position)
-
-            # 2.3 Get Joints position and velocities
-            data = rospy.wait_for_message(
-                '/joint_states',
-                JointState)
-
-            joint_pos = np.array(data.position)
-            joint_vel = np.array(data.velocity)
-            # print(f"{joint_pos} - {joint_vel}")
-            state = np.concatenate((joint_pos, joint_vel))
-
+            original_image = deepcopy(color_cv_image)
             # 3. Run action inference
-            action, predicted_bb = ai_controller.get_action(obs=color_cv_image,
-                                                            robot_state=state)
+            action, predicted_bb, image = ai_controller.get_action(obs=color_cv_image,
+                                                                   robot_state=state)
+            
+            obs['camera_front_image'] = image
+            obs['camera_front_image_full_size'] = original_image
+            obs['camera_front_depth_full_size'] = deepcopy(depth_cv_image)
+            shoulder_pan_joint_pos = state[0]
+            state[0] = state[2]
+            state[2] = shoulder_pan_joint_pos
+            obs['state'] = state
+            obs['action'] = action
+            if predicted_bb is not None:
+                obs['predicted_bb'] = dict()
+                obs['predicted_bb']['camera_front'] = predicted_bb
+            traj.append(obs)
 
-            # cv2.imshow("Predicted bb", predicted_bb)
-            # cv2.waitKey(500)
             # 4. Perform action
             # 4.1 Decopose action
             desired_position = action[:3]
-            if trj is not None:
+            if False and trj is not None:
                 # error_t = mean_squared_error(y_true=np.array([gt_action[:3]]),
                 #                              y_pred=np.array([action[:3]]))
                 # error_t = np.linalg.norm(
                 #     [gt_action[:3]] - np.array([action[:3]]), axis=1)
-                error_t = gt_action[2]-action[2]
-                rospy.loginfo(f"Error {error_t}")
+                error_t = gt_action[:3]-action[:3]
+                rospy.logerr(f"Error {error_t}")
+                if abs(error_t[2]) > 0.01:
+                    print(f"Error z {error_t}")
             # _axisangle2quat(vec=action[3:6])
-            desired_orientation = np.array([0.999, 0.032, 0.002, 0.010])
+            # np.array([0.999, 0.032, 0.002, 0.010])
+            desired_orientation = np.array([0.999, 0.032, 0.002, 0.010]) 
+            #_axisangle2quat(vec=action[3:6])
             predicted_gripper = int(action[-1]*255)
+            if predicted_gripper < 0:
+                predicted_gripper = 0
             gripper_finger_pos = predicted_gripper
-            # if predicted_gripper > 0.75:
-            #     gripper_finger_pos = 255
-            # else:
-            #     gripper_finger_pos = 0
-            # 4.2 Call controller
-            rospy.loginfo(
-                f"Predicted action: {desired_position}, {desired_orientation}, {gripper_finger_pos}")
-            # desired_position, desired_orientation = _convert_from_sim_space_to_real_sapce(
-            #     sim_pos=desired_position, sim_orientation=desired_orientation)
-            rospy.loginfo(
+            # rospy.loginfo(
+            #     f"Predicted action: {desired_position}, {desired_orientation}, {gripper_finger_pos}")
+
+            rospy.logdebug(
                 f"Real-world desired pose: {desired_position}, {desired_orientation}, {gripper_finger_pos}")
-            move_group.go_to_pose_goal(position=desired_position,
+            # if desired_position[2] < 0.10 and not picked:
+            #     rospy.loginfo("Adding offset during reaching")
+            #     desired_position[0] = desired_position[0] + 0.03
+            res = move_group.go_to_pose_goal(position=desired_position,
                                        orientation=desired_orientation,
                                        gripper_pos=gripper_finger_pos)
 
-            rospy.Rate(1).sleep()
+            if gripper_finger_pos == 255 and not picked:
+                rospy.Rate(1).sleep()
+            
+            if not res:
+                STOP = True
+                
+            rospy.Rate(10).sleep()
+
+            # check if the object has been picked
+            if gripper_finger_pos == 255 and not picked and not picked_old:
+                picked = check_pick(predicited_gripper_pos=gripper_finger_pos,
+                                    current_gripper_pos=move_group._gripper.get_state()['finger_position'])
+                # transition between close and open
+                if picked and not picked_old:
+                    rospy.loginfo("Transition open->close: Object pickded")
+                    picked_old = picked
+                    desired_position[2] = desired_position[2] + 0.05 
+                    move_group.go_to_pose_goal(position=desired_position,
+                                       orientation=desired_orientation,
+                                       gripper_pos=gripper_finger_pos)
+                else:
+                    rospy.loginfo("Transition open->close: Object not picked")
+
+            # check for task completion
+            if gripper_finger_pos < 20:
+                if picked:
+                    rospy.loginfo("Transition close->open")
+                    key = ''
+                    while key != "1" and key != "0":
+                        rospy.loginfo("Done? [1: True, 0: False]: ")
+                        key = input()
+                        done = bool(int(key))
+
+                        if done == False:
+                            picked = False
+
             t += 1
 
-        rospy.loginfo(
-            f"Summary task: {task_number} - Variation {variation_number}")
+        if not STOP:
+            rospy.loginfo("Trajectory completed - Move robot in safe location")
+            if done:
+                desired_position[2] = desired_position[2] + 0.10
+                gripper_finger_pos = 0
+                move_group.go_to_pose_goal(position=desired_position,
+                                        orientation=desired_orientation,
+                                        gripper_pos=gripper_finger_pos)
+            go_home(move_group=move_group)
+        if STOP:
+            rospy.loginfo("Stop requested")
+        
+        
+        write_summary(
+            model_name=model_name.split('.')[0],
+            task_number=task_number,
+                    variation_number=variation_number)
+        cnt += 1
+        
+        if args.correct_sample:
+            import dataset_collector 
+            from incremental_procedure import collect_correct_sample
+
+
+            enter=""
+            while enter != 'Y' and enter != 'N':
+                rospy.loginfo("Do you want to collect correct sample [Y/N]: ")
+                enter = input()
+            
+            if enter == 'Y':
+                rospy.loginfo(f"---- Collecting correct sample for task-id {task_number} Numeber {cnt}----")
+                collect_correct_sample(
+                                model_name=model_name.split('.')[0],
+                                task_name="pick_place", 
+                                task_id=task_number, 
+                                start_trj_cnt= cnt-1,
+                                traj=traj)
+            
+            else:
+                rospy.loginfo("---- Continue with test ----")

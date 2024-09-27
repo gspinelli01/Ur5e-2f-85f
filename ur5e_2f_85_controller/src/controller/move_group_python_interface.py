@@ -8,6 +8,7 @@ import moveit_commander
 import moveit_msgs.msg
 import geometry_msgs.msg
 from controller.robotiq2f_85 import Robotiq2f85
+from controller_manager_msgs.srv import ListControllers, SwitchController, SwitchControllerRequest
 
 
 try:
@@ -74,6 +75,13 @@ class MoveGroupPythonInterface(object):
 
         group_name = "tcp_group"
         move_group = moveit_commander.MoveGroupCommander(group_name)
+        
+        self._controller_manager_state_srv = rospy.ServiceProxy(
+            "/controller_manager/list_controllers", ListControllers)
+
+        self._switch_controller_srv = rospy.ServiceProxy(
+            "controller_manager/switch_controller", SwitchController)
+
 
         display_trajectory_publisher = rospy.Publisher(
             "/move_group/display_planned_path",
@@ -133,66 +141,88 @@ class MoveGroupPythonInterface(object):
         current_joints = move_group.get_current_joint_values()
         return all_close(joint_goal, current_joints, 0.01)
 
-    def go_to_pose_goal(self, position=[], orientation=[], gripper_pos=-1):
 
-        move_group = self.move_group
-        waypoints = []
+    def _start_stop_controllers(self, start=[], stop=[]):
+        # check running controller
+        controllers_state = self._controller_manager_state_srv.call()
+        switch_controller_req = SwitchControllerRequest()
+        controller_to_start = []
+        controller_to_stop = []
+        for controller in controllers_state.controller:
+            # if pos_joint_traj_controller is stopped then start it
+            if (controller.name in start) and controller.state == 'stopped':
+                controller_to_start.append(controller.name)
+            elif (controller.name in stop) and controller.state == 'running':
+                controller_to_stop.append(controller.name)
 
-        pose_goal = geometry_msgs.msg.Pose()
-        pose_goal.orientation.x = float(orientation[0])
-        pose_goal.orientation.y = float(orientation[1])
-        pose_goal.orientation.z = float(orientation[2])
-        pose_goal.orientation.w = float(orientation[3])
-        pose_goal.position.x = float(position[0])
-        pose_goal.position.y = float(position[1])
-        pose_goal.position.z = float(position[2])
-
-        waypoints.append(copy.deepcopy(pose_goal))
-        (plan, fraction) = move_group.compute_cartesian_path(waypoints,
-                                                             0.01,
-                                                             0.0)
-        # Display compute path
-        display_trj = moveit_msgs.msg.DisplayTrajectory()
-        display_trj.trajectory_start = self.robot.get_current_state()
-        display_trj.trajectory.append(plan)
-        self.display_trajectory_publisher.publish(display_trj)
-
-        if fraction == 1:
-            # press = input("Y to perform planned trajectory:")
-            enter = None
-            # while enter != "":
-            #     rospy.loginfo("Press enter to go to next wp: ")
-            #     enter = input()
-            if True:  # press == 'Y' or press == 'y':
-                success = move_group.execute(plan, wait=True)
-
-                # move_group.set_pose_target(pose_goal)
-
-                # Now, we call the planner to compute the plan and execute it.
-                # `go()` returns a boolean indicating whether the planning and execution was successful.
-                self._gripper.send_command(
-                    command='s', position=gripper_pos, force=100, speed=255)
-                # success = move_group.go(wait=True)
-                rospy.loginfo(f"Move group result {success}")
-                if success:
-                    # Calling `stop()` ensures that there is no residual movement
-                    move_group.stop()
-                    # It is always good to clear your targets after planning with poses.
-                    # Note: there is no equivalent function for clear_joint_value_targets().
-                    move_group.clear_pose_targets()
-
-                    # END_SUB_TUTORIAL
-
-                    # For testing:
-                    # Note that since this section of code will not be included in the tutorials
-                    # we use the class variable rather than the copied state variable
-                    # current_pose = self.move_group.get_current_pose().pose
-                    # rospy.loginfo(f"{self.move_group.get_current_pose()}")
-                    # return all_close(pose_goal, current_pose, 0.1)
-                return success
-            else:
-                rospy.loginfo("Execution blocked")
-                return False
+        switch_controller_req.strictness = switch_controller_req.BEST_EFFORT
+        switch_controller_req.start_controllers = controller_to_start
+        switch_controller_req.stop_controllers = controller_to_stop
+        switch_res = self._switch_controller_srv.call(switch_controller_req)
+        if switch_res.ok:
+            # rospy.loginfo("scaled_pos_joint_traj_controller started correctly")
+            return switch_res.ok
         else:
-            rospy.logerr(f"Planning fraction not 1: {fraction}")
-            return False
+            # rospy.logerr("scaled_pos_joint_traj_controller not started")
+            return switch_res.ok
+
+    def go_to_pose_goal(self, position=[], orientation=[], gripper_pos=-1):
+        if self._start_stop_controllers(start=["scaled_pos_joint_traj_controller"], stop=["twist_controller"]):
+            move_group = self.move_group
+            waypoints = []
+
+            pose_goal = geometry_msgs.msg.Pose()
+            pose_goal.orientation.x = float(orientation[0])
+            pose_goal.orientation.y = float(orientation[1])
+            pose_goal.orientation.z = float(orientation[2])
+            pose_goal.orientation.w = float(orientation[3])
+            pose_goal.position.x = float(position[0])
+            pose_goal.position.y = float(position[1])
+            pose_goal.position.z = float(position[2])
+
+            waypoints.append(copy.deepcopy(pose_goal))
+            (plan, fraction) = move_group.compute_cartesian_path(waypoints,
+                                                                0.01,
+                                                                0.0)
+            # Display compute path
+            display_trj = moveit_msgs.msg.DisplayTrajectory()
+            display_trj.trajectory_start = self.robot.get_current_state()
+            display_trj.trajectory.append(plan)
+            self.display_trajectory_publisher.publish(display_trj)
+
+            if fraction == 1:
+                # press = input("Y to perform planned trajectory:")
+                enter = None
+                # while enter != "":
+                #     rospy.loginfo("Press enter to go to next wp: ")
+                #     enter = input()
+                if True:  # press == 'Y' or press == 'y':
+                    success = move_group.execute(plan, wait=True)
+
+                    move_group.set_pose_target(pose_goal)
+
+                    self._gripper.send_command(
+                        command='s', position=gripper_pos, force=100, speed=255)
+                    rospy.logdebug(f"Move group result {success}")
+                    if success:
+                        # Calling `stop()` ensures that there is no residual movement
+                        move_group.stop()
+                        # It is always good to clear your targets after planning with poses.
+                        # Note: there is no equivalent function for clear_joint_value_targets().
+                        move_group.clear_pose_targets()
+
+                        # END_SUB_TUTORIAL
+
+                        # For testing:
+                        # Note that since this section of code will not be included in the tutorials
+                        # we use the class variable rather than the copied state variable
+                        # current_pose = self.move_group.get_current_pose().pose
+                        # rospy.loginfo(f"{self.move_group.get_current_pose()}")
+                        # return all_close(pose_goal, current_pose, 0.1)
+                    return success
+                else:
+                    rospy.loginfo("Execution blocked")
+                    return False
+            else:
+                rospy.logerr(f"Planning fraction not 1: {fraction}")
+                return False

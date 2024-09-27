@@ -186,8 +186,10 @@ if __name__ == '__main__':
     current_file_path = os.path.dirname(os.path.abspath(__file__))
     model_folder = args.model_folder
     model_name = args.model_name
+    model_char = model_name.split("model_save_")[-1].split("-")[0]
+    rospy.loginfo(f"Testing model with char {model_char}")
     conf_file_path = os.path.join(
-        current_file_path, model_folder, "config.yaml")
+        current_file_path, model_folder, f"config_{model_char}.yaml")
     model_file_path = os.path.join(
         current_file_path, model_folder, model_name)
     # context path

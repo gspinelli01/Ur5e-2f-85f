@@ -205,3 +205,13 @@ roslaunch zed_camera_controller zed_camera_controller.launch
 ```bash
 roslaunch zed_camera_controller zed_camera_controller.launch
 ```
+
+```bash
+# run aruco detector
+roslaunch 
+```
+
+```bash
+# run calibration node
+roslaunch 
+```

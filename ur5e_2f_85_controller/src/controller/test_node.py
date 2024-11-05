@@ -301,7 +301,8 @@ if __name__ == '__main__':
                         default="/media/ciccio/Sandisk/")
     parser.add_argument("--correct_sample", action='store_true')
     parser.add_argument("--debug", action="store_true")
-
+    parser.add_argument("--write_summary", action="store_true")
+    
     args, unknown = parser.parse_known_args()
 
     rospy.init_node("ai_controller_node", log_level=rospy.INFO)
@@ -335,7 +336,7 @@ if __name__ == '__main__':
     
     rospy.loginfo(
         f"Loading the following AI-controller {model_folder.split('/')[-1]} - Step {model_file_path.split('/')[-1]}")
-    if "mosaic" in model_folder and "ctod" not in model_folder and 'kp' not in model_folder:
+    if "mosaic" in model_folder and "_ctod" not in model_folder and '_kp' not in model_folder:
         ai_controller = MosaicController(
             conf_file_path=conf_file_path,
             model_file_path=model_file_path,
@@ -392,8 +393,8 @@ if __name__ == '__main__':
             rospy.logerr(e)
 
     enter = None
-    cnt = 263
-    
+    cnt = 0
+        
     while True:
         rospy.loginfo(f"Starting rollout number {cnt}")
         if isinstance(ai_controller, KPController):
@@ -607,11 +608,12 @@ if __name__ == '__main__':
             rospy.loginfo("Stop requested")
         
         
-        write_summary(
-            model_name=model_name.split('.')[0],
-            task_number=task_number,
-                    variation_number=variation_number)
-        cnt += 1
+        if args.write_summary:
+            write_summary(
+                model_name=model_name.split('.')[0],
+                task_number=task_number,
+                        variation_number=variation_number)
+            cnt += 1
         
         if args.correct_sample:
             import dataset_collector 

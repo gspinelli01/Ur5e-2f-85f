@@ -1,9 +1,9 @@
 <launch>
     <arg name="model_folder"
-        default="/home/ciccio/Desktop/catkin_ws/src/Ur5e-2f-85f/ur5e_2f_85_controller/src/ai_controller/checkpoint/mosaic_ctod"
+        default="/home/ciccio/Desktop/catkin_ws/src/Ur5e-2f-85f/ur5e_2f_85_controller/src/ai_controller/checkpoint/mosaic_kp"
     />
     <arg name="model_name"
-        default="model_save_state_finetuned_no_val_second_it-63630.pt" />
+        default="model_save_dp_no_state_finetuned_no_val-63630.pt" />
 
     <!-- <arg name="model_folder"
     default="/home/ciccio/Desktop/catkin_ws/src/Ur5e-2f-85f/ur5e_2f_85_controller/src/ai_controller/checkpoint/mosaic"

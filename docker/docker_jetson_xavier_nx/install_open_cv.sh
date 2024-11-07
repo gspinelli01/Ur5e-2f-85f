@@ -9,8 +9,8 @@
 # license agreement from NVIDIA Corporation is strictly prohibited.
 #
 
-version="4.5.4-8"
-folder="workspace"
+version="4.5.8"
+folder="opencv"
 
 
 echo "** Remove other OpenCV first"
@@ -26,6 +26,7 @@ sudo apt-get install -y python3.8-dev python-dev python-numpy python3-numpy
 sudo apt-get install -y libtbb2 libtbb-dev libjpeg-dev libpng-dev libtiff-dev libdc1394-22-dev
 sudo apt-get install -y libv4l-dev v4l-utils qv4l2 v4l2ucp
 sudo apt-get install -y curl
+sudo apt-get install -y zip
 
 
 echo "------------------------------------"

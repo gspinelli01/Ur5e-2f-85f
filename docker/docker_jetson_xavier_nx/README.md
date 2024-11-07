@@ -8,9 +8,12 @@ sudo docker build --ssh default=C:/Users/franc/.ssh/id_rsa -t jetson_xavier_nx -
 sudo date -s "$(wget -qSO- --max-redirect=0 google.com 2>&1 | grep Date: | cut -d' ' -f5-8)Z"
 ```
 
+# Fix the problem with docker run
+See this [link](https://github.com/dusty-nv/jetson-containers/issues/108) 
+
 # Run the docker 
 ```
-sudo docker run -it --runtime=nvidia --rm --network="host" --privileged --name ur_controller -v /home/mivia/Desktop/frosa/Ur5e-2f-85f/docker/docker_jetson_xavier_nx:/home/mivia/docker_jetson_xavier_nx -v /dev:/dev jetson_xavier_nx 
+sudo docker run -it --gpus all --runtime=nvidia --rm --network="host" --privileged --name ur_controller -v /home/mivia/Desktop/frosa/Ur5e-2f-85f/docker/docker_jetson_xavier_nx:/home/mivia/docker_jetson_xavier_nx -v /dev:/dev jetson_xavier_nx 
 
 sudo docker exec -it ur_controller /bin/bash /home/mivia/docker_jetson_xavier_nx/start.sh
 

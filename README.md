@@ -220,6 +220,7 @@ roslaunch
 
 Important link:
 * Real-time consideration [link](https://github.com/UniversalRobots/Universal_Robots_ROS_Driver/blob/master/ur_robot_driver/doc/real_time.md)
+* RT-for-jetson [link](https://github.com/hmxf/RTJetson/tree/R35.3.1)
 
 ```bash
 sudo docker run -it --gpus all --runtime=nvidia --rm --network="host" --privileged --name ur_controller -v /home/mivia/Desktop/frosa/Ur5e-2f-85f/docker/docker_jetson_xavier_nx:/home/mivia/docker_jetson_xavier_nx -v /dev:/dev jetson_xavier_nx 

@@ -1,10 +1,23 @@
+# Build the docker
+
+```bash
+
+# first build the image in ros_noetic_v1 folder
+cd ros_noetic_v1
+docker build -t ros_noetic:v1 .
+
+# then build the docker from the first image
+cd ..
+docker build -t ros_ur5e_noetic:v1 --build-arg GIT_PERSONAL_TOKEN=<YOUR PERSONAL GIT TOKEN> .
+```
+
 # Run the docker 
 ```bash
 sudo docker run -it --gpus all --runtime=nvidia --rm --network="host" --privileged --name ur_controller -v /home/gianl/uni/Ur5e-2f-85f/docker/docker_ubuntu20:/home/docker_ubuntu20 -v /dev:/dev --env="DISPLAY" --env="QT_X11_NO_MITSHM=1" --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" ros_ur5e_noetic:v1
 
 sudo docker exec -it ur_controller /bin/bash
 ```
-
+# Once started the container
 ```bash
 # only at first boot
 roslaunch ur_calibration calibration_correction.launch robot_ip:=172.16.174.10 target_filename:="/home/docker_ubuntu20/robot_calibration.yaml"

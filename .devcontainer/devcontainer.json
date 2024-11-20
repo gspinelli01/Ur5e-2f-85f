@@ -1,0 +1,66 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/docker-existing-dockerfile
+{
+	"name": "ros_ur5e_noetic",
+	"build": {
+		"dockerfile": "Dockerfile",
+		"args": {}
+	},
+    "runArgs": [
+        "-it",
+        "--gpus", "all",
+        "--runtime=nvidia",
+        "--rm",
+        "--network","host",
+        "-p", "2222:22",
+        "--privileged",
+        "--name", "ur_controller",
+        "-v", "/home/gianl/uni/Ur5e-2f-85f/docker/docker_ubuntu20:/home/docker_ubuntu20",
+        "-v","/dev:/dev",
+        "-v", "/media:/media",
+        "--env=DISPLAY",
+        "--env=QT_X11_NO_MITSHM=1",
+        "--volume=/tmp/.X11-unix:/tmp/.X11-unix:rw"
+    ],
+	"workspaceFolder": "/home/gianl",
+    //"workspaceMount": "source=${localWorkspaceFolder},target=/home/gianl,type=bind",
+    "customizations": {
+        "vscode": {
+            "extensions":[
+                "ms-azuretools.vscode-docker",
+                "ms-python.vscode-pylance",
+                "ms-python.python",
+                "mhutchie.git-graph",
+                "oderwat.indent-rainbow",
+                "mintlify.document",
+                "tal7aouy.rainbow-bracket",
+                "mechatroner.rainbow-csv",
+                "ms-vscode.cmake-tools",
+                "ms-vscode.live-server",
+                "Perkovec.emoji",
+                "GitHub.vscode-pull-request-github"
+            ]
+        }
+    },
+    // "containerEnv": {
+    //     "PYTHONPATH": "${localEnv:PYTHONPATH}:/catkin_ws"
+    // },
+	"postCreateCommand": "bash /home/docker_ubuntu20/start.sh"
+
+	// "-v","~/Volumes:/home/usr/"
+
+	// Features to add to the dev container. More info: https://containers.dev/features.
+	// "features": {},
+
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	// "forwardPorts": [],
+
+	// Uncomment the next line to run commands after the container is created.
+	// "postCreateCommand": ""
+
+	// Configure tool-specific properties.
+	// "customizations": {},
+
+	// Uncomment to connect as an existing user other than the container default. More info: https://aka.ms/dev-containers-non-root.
+	// "remoteUser": "devcontainer"
+}

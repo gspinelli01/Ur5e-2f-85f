@@ -3,3 +3,4 @@ ur5e_2f_85_controller/src/ai_controller
 __pycache__
 *.pyc
 context/*
+.vscode

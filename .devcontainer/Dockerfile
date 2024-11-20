@@ -18,7 +18,7 @@ RUN source /opt/ros/noetic/setup.bash
 ARG USERNAME="gianl"
 ARG USER_UID=1000
 ARG USER_GID=1000
-ARG GIT_PERSONAL_TOKEN
+ARG GIT_PERSONAL_TOKEN=<YOUR_PERSONAL_GIT_TOKEN>
 
 # Create the user
 RUN groupadd --gid $USER_GID $USERNAME \
@@ -46,7 +46,6 @@ RUN source /opt/ros/${ROS_DISTRO}/setup.bash && catkin init
 RUN source /opt/ros/${ROS_DISTRO}/setup.bash && catkin build
 RUN source devel/setup.bash
 
-
 # Install moveit
 WORKDIR ${HOME}/catkin_ws/src/moveit
 RUN sudo apt-get purge -y '*opencv*' && sudo apt-get update -y && sudo wstool init . && sudo wstool merge -t . https://raw.githubusercontent.com/ros-planning/moveit/master/moveit.rosinstall && sudo wstool remove  moveit_tutorials &&  rosdep update && sudo wstool update -t . && rosdep install -y --from-paths . --ignore-src --rosdistro noetic --os=ubuntu:focal
@@ -67,7 +66,6 @@ RUN rosdep install --from-paths . --ignore-src -y && sudo apt-get install ros-no
 WORKDIR ${HOME}/catkin_ws
 RUN sudo catkin config --skiplist robotiq_2f_140_gripper_visualization robotiq_2f_c2_gripper_visualization robotiq_3f_gripper_articulated_msgs robotiq_3f_gripper_articulated_gazebo robotiq_3f_gripper_articulated_gazebo_plugins robotiq_3f_gripper_control robotiq_3f_gripper_joint_state_publisher robotiq_3f_gripper_visualization robotiq_3f_rviz robotiq_ft_sensor
 RUN sudo catkin build && source devel/setup.bash
-
 
 # Joy dependencies
 WORKDIR ${HOME}/catkin_ws/src
@@ -100,11 +98,9 @@ WORKDIR /home/gianl
 
 # Install Camera dependency
 WORKDIR /home/temp
-
 ## ZED SDK 4.0.8
 # RUN sudo wget -q --no-check-certificate https://download.stereolabs.com/zedsdk/4.0/cu117/ubuntu20
 # RUN sudo chmod +x ubuntu20 && sudo apt install -y zstd && sudo ./ubuntu20 silent skip_tools && sudo rm -rf /usr/local/zed/resources/* && sudo rm -rf ubuntu20 && sudo rm -rf /var/lib/apt/lists/*
-
 ## ZED SDK 4.0.2
 RUN sudo wget -q --no-check-certificate https://stereolabs.sfo2.cdn.digitaloceanspaces.com/zedsdk/4.0/ZED_SDK_Ubuntu20_cuda11.8_v4.0.2.zstd.run
 RUN sudo chmod +x ZED_SDK_Ubuntu20_cuda11.8_v4.0.2.zstd.run && sudo apt install -y zstd && sudo ./ZED_SDK_Ubuntu20_cuda11.8_v4.0.2.zstd.run silent skip_tools && sudo rm -rf /usr/local/zed/resources/* && sudo rm -rf ZED_SDK_Ubuntu20_cuda11.8_v4.0.2.zstd.run && sudo rm -rf /var/lib/apt/lists/*
@@ -123,10 +119,13 @@ RUN sudo python3 -m pip install pyquaternion && sudo python3 -m pip install ${HO
 WORKDIR ${HOME}/catkin_ws
 RUN sudo catkin build  dataset_collector zed_camera_controller
 RUN source devel/setup.bash
+RUN sudo python3 -m pip install pynput
+
+### in catkin_ws/src/Learning-from-Demonstration-Dataset-Collector/dataset_collector/src/trajectory_collector.py riga 13 cambiare `camera_controller` con `zed_camera_controller`
 
 # ssh server
-RUN sudo apt-get -y update && sudo apt-get install -y openssh-server  && sudo mkdir /var/run/sshd && sudo echo 'root:root123' | sudo chpasswd && sudo sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+# RUN sudo apt-get -y update && sudo apt-get install -y openssh-server  && sudo mkdir /var/run/sshd && sudo echo 'root:root123' | sudo chpasswd && sudo sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
 
-EXPOSE 22
+# EXPOSE 22
 
 CMD ["/bin/bash", "/home/docker_ubuntu20/start.sh"]

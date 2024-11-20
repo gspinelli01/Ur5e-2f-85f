@@ -80,7 +80,7 @@ RUN sudo catkin build
 
 # Install custom packages
 WORKDIR ${HOME}/catkin_ws/src
-RUN git clone https://$GIT_PERSONAL_TOKEN@github.com/ciccio42/Ur5e-2f-85f.git
+RUN git clone https://$GIT_PERSONAL_TOKEN@github.com/gspinelli01/Ur5e-2f-85f.git
 WORKDIR ${HOME}/catkin_ws
 RUN sudo catkin build
 

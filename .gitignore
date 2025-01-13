@@ -1,4 +1,6 @@
-ur5e_2f_85_controller/src/ai_controller
+ur5e_2f_85_controller/src/ai_controller/checkpoint
+ur5e_2f_85_controller/src/ai_controller/context
+*.png
 *.pt
 __pycache__
 *.pyc

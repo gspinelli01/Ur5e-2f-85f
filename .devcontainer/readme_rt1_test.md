@@ -1,4 +1,4 @@
-# for every shell you open
+u open
 ```bash
 # you have to do this BEFORE executing roslaunch after
 sudo -i

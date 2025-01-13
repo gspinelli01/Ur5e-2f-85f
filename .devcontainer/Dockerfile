@@ -126,6 +126,7 @@ WORKDIR ${HOME}/Multi-Task-LFD-Framework/repo/Multi-Task-LFD-Training-Framework
 RUN git pull && \
     git checkout ur5e
 
+USER root
 # install torch
 RUN sudo python3 -m pip install torch==1.13.1+cu117 torchvision==0.14.1 -f https://download.pytorch.org/whl/torch_stable.html && \
     sudo python3 -m pip install scikit-learn && \
@@ -139,7 +140,7 @@ RUN sudo python3 -m pip install -e . && \
     sudo python3 -m pip install colorama && \
     sudo python3 -m pip install torchsummary
 
-
+USER ${USERNAME}
 ### in catkin_ws/src/Learning-from-Demonstration-Dataset-Collector/dataset_collector/src/trajectory_collector.py riga 13 cambiare `camera_controller` con `zed_camera_controller`
 
 # ssh server

@@ -40,7 +40,7 @@ RUN sudo apt-get install -y python3-wstool python3-rosdep
 WORKDIR ${HOME}/catkin_ws/src
 # Clone open-cv
 RUN git clone -b noetic https://github.com/ros-perception/vision_opencv.git
-WORKDIR ${HOME}/catkin_ws
+WORKDIR ${HOME}/catkin_ws   
 RUN catkin config --extend /opt/ros/${ROS_DISTRO} --cmake-args -DCMAKE_BUILD_TYPE=Release
 RUN source /opt/ros/${ROS_DISTRO}/setup.bash && catkin init
 RUN source /opt/ros/${ROS_DISTRO}/setup.bash && catkin build
@@ -121,11 +121,36 @@ RUN sudo catkin build  dataset_collector zed_camera_controller
 RUN source devel/setup.bash
 RUN sudo python3 -m pip install pynput
 
+# git checkout ur5e
+WORKDIR ${HOME}/Multi-Task-LFD-Framework/repo/Multi-Task-LFD-Training-Framework
+RUN git pull && \
+    git checkout ur5e
+
+# install torch
+RUN sudo python3 -m pip install torch==1.13.1+cu117 torchvision==0.14.1 -f https://download.pytorch.org/whl/torch_stable.html && \
+    sudo python3 -m pip install scikit-learn && \
+    sudo python3 -m pip install einops hydra-core
+
+WORKDIR ${HOME}/Multi-Task-LFD-Framework/repo/Multi-Task-LFD-Training-Framework/training
+RUN sudo python3 -m pip install -e . && \
+    sudo apt-get update && \
+    sudo apt-get install -y python3-tk && \
+    sudo python3 -m pip install tqdm && \
+    sudo python3 -m pip install colorama && \
+    sudo python3 -m pip install torchsummary
+
+
 ### in catkin_ws/src/Learning-from-Demonstration-Dataset-Collector/dataset_collector/src/trajectory_collector.py riga 13 cambiare `camera_controller` con `zed_camera_controller`
 
 # ssh server
 # RUN sudo apt-get -y update && sudo apt-get install -y openssh-server  && sudo mkdir /var/run/sshd && sudo echo 'root:root123' | sudo chpasswd && sudo sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
 
 # EXPOSE 22
+
+# requirements
+# WORKDIR ${HOME}/requirements
+# RUN sudo python3 -m pip install -r ur5e_requirements.txt && \
+#     sudo python3 -m pip install --user torch==1.13.1+cu117 torchvision==0.14.1 -f https://download.pytorch.org/whl/torch_stable.html
+
 
 CMD ["/bin/bash", "/home/docker_ubuntu20/start.sh"]

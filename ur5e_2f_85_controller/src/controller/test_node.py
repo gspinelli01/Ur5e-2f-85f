@@ -528,6 +528,10 @@ if __name__ == '__main__':
             # 4. Perform action
             # 4.1 Decopose action
             desired_position = action[:3]
+
+           if variation_number == 0 or variation_number == 1:
+             desired_position[0] = desired_position[0] +0.015
+             
             if False and trj is not None:
                 # error_t = mean_squared_error(y_true=np.array([gt_action[:3]]),
                 #                              y_pred=np.array([action[:3]]))

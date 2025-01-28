@@ -128,7 +128,7 @@ RUN git pull && \
 
 USER root
 # install torch
-RUN sudo python3 -m pip install torch==1.13.1+cu117 torchvision==0.14.1 -f https://download.pytorch.org/whl/torch_stable.html && \
+RUN sudo python3 -m pip install torch==1.13.1+cu117 torchvision==0.14.1+cu117 --extra-index-url https://download.pytorch.org/whl/cu117 && \
     sudo python3 -m pip install scikit-learn && \
     sudo python3 -m pip install einops hydra-core
 
@@ -138,7 +138,12 @@ RUN sudo python3 -m pip install -e . && \
     sudo apt-get install -y python3-tk && \
     sudo python3 -m pip install tqdm && \
     sudo python3 -m pip install colorama && \
-    sudo python3 -m pip install torchsummary
+    sudo python3 -m pip install torchsummary && \
+    sudo python3 -m pip install gym && \
+    sudo python3 -m pip install scikit-image && \
+    sudo python3 -m pip uninstall -y numpy && \
+    sudo python3 -m pip install numpy==1.24 && \
+    sudo python3 -m pip install debugpy
 
 USER ${USERNAME}
 ### in catkin_ws/src/Learning-from-Demonstration-Dataset-Collector/dataset_collector/src/trajectory_collector.py riga 13 cambiare `camera_controller` con `zed_camera_controller`

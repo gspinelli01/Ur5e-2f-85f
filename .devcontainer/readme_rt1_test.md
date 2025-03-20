@@ -22,12 +22,6 @@ source devel/setup.bash
 roslaunch ur5e_2f_85_controller controller.launch 
 ```
 
-```bash
-sudo -i
-cd /home/gianl/catkin_ws
-source devel/setup.bash
-roslaunch ur5e_2f_85_camera_table_moveit_config moveit_rviz.launch 
-``` 
 
 # 2.1. Run gripper driver
 ```bash
@@ -44,6 +38,28 @@ cd /home/gianl/catkin_ws
 source devel/setup.bash
 roslaunch zed_camera_controller zed_camera_controller.launch
 ```
+<!-- 
+```bash
+cd /home/gianl/catkin_ws/src/Ur5e-2f-85f
+git pull
+adjust the indentation
+``` -->
+
+
+# at startup
+add `--write_summary` to `ai_controller_test.launch`
+- select `cnt` variable in `test_node.py`
+
+# if you want to import rt1 from multi_task_il.models
+```bash
+cd /home/gianl/Multi-Task-LFD-Framework/repo/Multi-Task-LFD-Training-Framework
+git branch -v -a
+git switch gspinelli # create a local copy of the remote branch
+git pull
+
+#for CTOD:
+git switch ur5e
+    
 
 # 2.3 Run test node
 # [REMEMBER] to do `xhost si:localuser:root` from gianl user
@@ -53,3 +69,26 @@ cd /home/gianl/catkin_ws
 source devel/setup.bash
 roslaunch ur5e_2f_85_controller ai_controller_test.launch
 ```
+
+<!-- # optional
+```bash
+sudo -i
+cd /home/gianl/catkin_ws
+source devel/setup.bash
+roslaunch ur5e_2f_85_camera_table_moveit_config moveit_rviz.launch 
+```  -->
+
+
+
+```
+[REMEMBER] paste the test_node.py
+
+# to switch to main branch
+git checkout main
+
+# to switch to gspinelli branch
+git checkout gspinelli
+
+
+
+

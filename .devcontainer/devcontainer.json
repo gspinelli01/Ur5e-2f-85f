@@ -18,15 +18,15 @@
         "-v", "/home/gianl/uni/Ur5e-2f-85f/docker/docker_ubuntu20:/home/docker_ubuntu20",
         "-v","/dev:/dev",
         "-v", "/media:/media",
-        "-v", "/home/gianl/Desktop/ai_controller_rosa:/home/gianl/catkin_ws/src/Ur5e-2f-85f/ur5e_2f_85_controller/src/ai_controller",
-        "-v", "/home/gianl/uni/Ur5e-2f-85f/requirements:/home/gianl/requirements",
         "-v", "/home/gianl/Desktop/launch_folder_rosa:/home/gianl/catkin_ws/src/Ur5e-2f-85f/ur5e_2f_85_controller/launch",
-        "-v", "/home/gianl/Desktop/move_group_python_interface.py:/home/gianl/catkin_ws/src/Ur5e-2f-85f/ur5e_2f_85_controller/src/controller/move_group_python_interface.py",
+        "-v", "/home/gianl/Desktop/ai_controller_rosa:/home/gianl/catkin_ws/src/Ur5e-2f-85f/ur5e_2f_85_controller/src/ai_controller",
         "-v", "/home/gianl/uni/Ur5e-2f-85f/.devcontainer/readme_rt1_test.md:/home/gianl/catkin_ws/src/Ur5e-2f-85f/ur5e_2f_85_controller/src/ai_controller/readme_rt1_test.md",
+        "-v", "/home/gianl/Desktop/move_group_python_interface.py:/home/gianl/catkin_ws/src/Ur5e-2f-85f/ur5e_2f_85_controller/src/controller/move_group_python_interface.py",
+        "-v", "/home/gianl/Desktop/test_nodeeeeee_backup.py:/home/gianl/catkin_ws/src/Ur5e-2f-85f/ur5e_2f_85_controller/src/controller/test_node.py",
         "--env=DISPLAY",
         "--env=QT_X11_NO_MITSHM=1",
         "--volume=/tmp/.X11-unix:/tmp/.X11-unix:rw"
-    ],
+    ],          
 	"workspaceFolder": "/home/gianl",
     //"workspaceMount": "source=${localWorkspaceFolder},target=/home/gianl,type=bind",
     "customizations": {
@@ -68,4 +68,7 @@
 
 	// Uncomment to connect as an existing user other than the container default. More info: https://aka.ms/dev-containers-non-root.
 	// "remoteUser": "devcontainer"
+
+
+    // "-v", "/home/gianl/Desktop/ai_controller_rosa:/home/gianl/catkin_ws/src/Ur5e-2f-85f/ur5e_2f_85_controller/src/ai_controller",
 }

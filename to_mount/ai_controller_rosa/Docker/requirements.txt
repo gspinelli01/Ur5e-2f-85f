@@ -1,0 +1,21 @@
+gym 
+opencv-python 
+h5py 
+pyquaternion 
+pyyaml 
+matplotlib 
+hydra-core 
+einops 
+numpy
+# ??
+imageio 
+Cython 
+wandb 
+pycparser
+scipy 
+learn2learn
+pybullet==2.6.9
+pygame
+open3d
+imageio[ffmpeg]
+imageio[pyav]

@@ -1,0 +1,413 @@
+tasks_cfgs:
+  nut_assembly:
+    name: nut_assembly
+    n_tasks: 9
+    crop:
+    - 20
+    - 25
+    - 80
+    - 75
+    n_per_task: 3
+    task_ids:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    - 8
+    skip_ids: []
+    loss_mul: 1
+    task_per_batch: 9
+    traj_per_subtask: 100
+    demo_per_subtask: 100
+  door:
+    name: door
+    n_tasks: 4
+    crop:
+    - 0
+    - 0
+    - 0
+    - 0
+    n_per_task: 8
+    task_ids:
+    - 0
+    - 1
+    - 2
+    - 3
+    loss_mul: 1
+    task_per_batch: 4
+    traj_per_subtask: 100
+    demo_per_subtask: 100
+  drawer:
+    name: drawer
+    n_tasks: 8
+    crop:
+    - 0
+    - 0
+    - 0
+    - 0
+    n_per_task: 3
+    task_ids:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    loss_mul: 1
+    task_per_batch: 8
+    traj_per_subtask: 100
+    demo_per_subtask: 100
+  button:
+    name: press_button_close_after_reaching
+    n_tasks: 6
+    crop:
+    - 10
+    - 10
+    - 70
+    - 70
+    n_per_task: 5
+    task_ids:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    skip_ids: []
+    loss_mul: 1
+    task_per_batch: 6
+    traj_per_subtask: 100
+    demo_per_subtask: 100
+  pick_place:
+    name: pick_place
+    n_tasks: 16
+    crop:
+    - 20
+    - 25
+    - 80
+    - 75
+    n_per_task: 2
+    task_ids:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    - 8
+    - 9
+    - 10
+    - 11
+    - 12
+    - 13
+    - 14
+    - 15
+    skip_ids: []
+    loss_mul: 1
+    task_per_batch: 16
+    traj_per_subtask: 100
+    demo_per_subtask: 100
+  stack_block:
+    name: stack_block
+    n_tasks: 6
+    crop:
+    - 20
+    - 25
+    - 80
+    - 75
+    n_per_task: 5
+    task_ids:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    skip_ids: []
+    loss_mul: 1
+    task_per_batch: 6
+    traj_per_subtask: 100
+    demo_per_subtask: 100
+  basketball:
+    name: basketball
+    n_tasks: 12
+    crop:
+    - 0
+    - 0
+    - 0
+    - 0
+    n_per_task: 3
+    task_ids:
+    - 0
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    - 8
+    - 9
+    - 10
+    - 11
+    loss_mul: 1
+    task_per_batch: 12
+    traj_per_subtask: 100
+    demo_per_subtask: 100
+finetuning_cfgs:
+  panda_pick_place:
+    name: panda_pick_place
+    crop:
+    - 20
+    - 25
+    - 80
+    - 75
+    image_channel_format: RGB
+    subsample: false
+  ur5e_pick_place:
+    name: ur5e_pick_place
+    crop:
+    - 20
+    - 25
+    - 80
+    - 75
+    image_channel_format: RGB
+    subsample: false
+  sim_ur5e_pick_place_shifted_converted_absolute:
+    name: sim_ur5e_pick_place_shifted_converted_absolute
+    crop:
+    - 20
+    - 25
+    - 80
+    - 75
+    image_channel_format: RGB
+    subsample: false
+  real_new_ur5e_pick_place_converted_absolute:
+    name: real_new_ur5e_pick_place_converted_absolute
+    n_tasks: 16
+    crop:
+    - 0
+    - 30
+    - 120
+    - 120
+    image_channel_format: BGR
+    subsample: false
+  asu_table_top_converted_absolute_pose:
+    name: asu_table_top_converted_absolute_pose
+    crop:
+    - 0
+    - 35
+    - 0
+    - 0
+    image_channel_format: RGB
+    subsample: false
+  berkeley_autolab_ur5_converted_absolute_pose:
+    name: berkeley_autolab_ur5_converted_absolute_pose
+    crop:
+    - 0
+    - 0
+    - 0
+    - 0
+    image_channel_format: RGB
+    subsample: false
+  iamlab_cmu_pickup_insert_converted_absolute_pose:
+    name: iamlab_cmu_pickup_insert_converted_absolute_pose
+    crop:
+    - 0
+    - 0
+    - 0
+    - 0
+    image_channel_format: RGB
+    subsample: false
+  taco_play_converted_absolute_pose:
+    name: taco_play_converted_absolute_pose
+    crop:
+    - 0
+    - 0
+    - 0
+    - 0
+    image_channel_format: RGB
+    subsample: false
+  droid_converted_absolute_pose:
+    name: droid_converted_absolute_pose
+    crop:
+    - 0
+    - 0
+    - 0
+    - 0
+    image_channel_format: RGB
+    subsample: false
+debug: false
+EXPEc_DATA: null
+save_path: /user/frosa/multi_task_lfd/checkpoint_save_folder
+wandb_log: true
+project_name: cond_module_ALLBUTDROID_20epochs_RGB_weak_aug
+log_freq: 10
+val_freq: -1
+print_freq: 1
+save_freq: -1
+cosine_annealing: false
+save_optim: true
+resume: true
+resume_path: /user/frosa/multi_task_lfd/checkpoint_save_folder/cond_module_ALLBUTDROID_20epochs_RGB_weak_aug-Batch32
+resume_step: 1265
+device: 2
+exp_name: cond_module_ALLBUTDROID_20epochs_RGB_weak_aug-Batch32
+epochs: 20
+bsize: 32
+vsize: 32
+optimizer: AdamW
+loss: ''
+bb_sequence: 1
+action_sequence: 1
+task_names: pick_place
+rollout: false
+dataset_target: multi_task_il.datasets.command_encoder.command_encoder_dataset.CommandEncoderFinetuningDataset
+train_cfg:
+  batch_size: ${bsize}
+  val_size: ${vsize}
+  lr: 0.0001
+  optimizer: ${optimizer}
+  epochs: ${epochs}
+  log_freq: ${log_freq}
+  save_freq: ${save_freq}
+  print_freq: ${print_freq}
+  val_freq: ${val_freq}
+  inv_loss_mult: ${inv_mul}
+  bc_loss_mult: ${bc_mul}
+  pnt_loss_mult: ${pnt_mul}
+  rep_loss_muls: ${rep_muls}
+  dataset: ${dataset_cfg}
+  sampler: ${samplers}
+  target_update_freq: 5
+  early_stopping: ${early_stopping_cfg}
+  weight_decay: 0.0
+  lr_schedule: null
+early_stopping_cfg:
+  patience: 10
+  delta: 0.001
+tasks:
+- name: pick_place
+  n_tasks: 16
+  crop:
+  - 20
+  - 25
+  - 80
+  - 75
+  n_per_task: 2
+  task_ids:
+  - 0
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  - 6
+  - 7
+  - 8
+  - 9
+  - 10
+  - 11
+  - 12
+  - 13
+  - 14
+  - 15
+  skip_ids: []
+  loss_mul: 1
+  task_per_batch: 16
+  traj_per_subtask: 100
+  demo_per_subtask: 100
+single_task: false
+exclude_task: false
+use_all_tasks: false
+set_same_n: -1
+limit_num_traj: -1
+limit_num_demo: -1
+loader_workers: 16
+samplers:
+  batch_size: ${bsize}
+  drop_last: false
+  shuffle: true
+  balancing_policy: 0
+val_skip: true
+train_skip: true
+sampler_cfg:
+  shuffle: true
+dataset_cfg:
+  _target_: ${dataset_target}
+  tasks_spec: ${tasks}
+  dataset_samples_spec: ${finetuning_cfgs}
+  mode: train
+  jsons_folder: /raid/home/frosa_Loc/Multi-Task-LFD-Framework/repo/Multi-Task-LFD-Training-Framework/bashes
+  demo_T: 4
+  width: 180
+  height: 100
+  aug_twice: false
+  aux_pose: true
+  use_strong_augs: false
+  data_augs: ${augs}
+  black_list:
+  - sim_ur5e_pick_place_shifted_converted_absolute
+  - real_new_ur5e_pick_place_converted_absolute
+  - droid_converted_absolute_pose
+  select_random_frames: true
+augs:
+  old_aug: false
+  brightness:
+  - 0.9
+  - 1.1
+  contrast:
+  - 0.9
+  - 1.1
+  saturation:
+  - 0.9
+  - 1.1
+  hue:
+  - 0.0
+  - 0.0
+  p: 0.1
+  horizontal_flip_p: 0.5
+  brightness_strong:
+  - 0.875
+  - 1.125
+  contrast_strong:
+  - 0.5
+  - 1.5
+  saturation_strong:
+  - 0.5
+  - 1.5
+  hue_strong:
+  - -0.05
+  - 0.05
+  p_strong: 0.5
+  horizontal_flip_p_strong: 0.5
+  null_bb: true
+policy: ${cond_module}
+cond_module:
+  _target_: multi_task_il.datasets.command_encoder.cond_module.CondModule
+  height: 120
+  width: 160
+  demo_T: 4
+  model_name: r2plus1d_18
+  pretrained: true
+  cond_video: true
+  n_layers: 3
+  demo_W: 7
+  demo_H: 7
+  demo_ff_dim:
+  - 128
+  - 64
+  - 32
+  demo_linear_dim:
+  - 512
+  - 512
+  - 512
+  conv_drop_dim: 3

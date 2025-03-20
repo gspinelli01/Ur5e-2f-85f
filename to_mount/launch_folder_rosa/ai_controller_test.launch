@@ -1,0 +1,122 @@
+<launch>
+
+<!-- DELTA MODELS -->
+<!-- 
+<arg name="model_folder"
+    default="/home/gianl/catkin_ws/src/Ur5e-2f-85f/ur5e_2f_85_controller/src/ai_controller/checkpoint/rt1_real_COtraining_all_lr1e-7_delta-Batch48"
+/>
+<arg name="model_name"
+    default="model_save-6744.pt" /> -->
+
+
+<!-- COTRIANING PANDA-SIM UR5-SIM UR5-REAL -->
+<arg name="model_folder"
+    default="/home/gianl/catkin_ws/src/Ur5e-2f-85f/ur5e_2f_85_controller/src/ai_controller/checkpoint/rt1_real_panda-sim_ur5e-sim_ur5e-real_COtraining-Batch48"
+/>
+<arg name="model_name"
+    default="model_save-17000.pt" />
+
+
+<!-- X-UR5, MS-UR5 -> MR-UR5 -->
+<!-- <arg name="model_folder"
+    default="/home/gianl/catkin_ws/src/Ur5e-2f-85f/ur5e_2f_85_controller/src/ai_controller/checkpoint/rt1_real__X-UR5_MS-UR5_to_MR-UR5_finetuning-Batch48"
+/>
+<arg name="model_name"
+    default="model_save-23270.pt" /> -->
+
+<!-- REAL FROM SCATCH -->
+<!-- <arg name="model_folder"
+    default="/home/gianl/catkin_ws/src/Ur5e-2f-85f/ur5e_2f_85_controller/src/ai_controller/checkpoint/rt1_real_1_demo-Batch48"
+/>
+<arg name="model_name"
+    default="model_save-35100.pt" /> -->
+
+<!-- COTRAINING PANDA + UR5 (OPENX) -->
+    <!-- <arg name="model_folder"
+        default="/home/gianl/catkin_ws/src/Ur5e-2f-85f/ur5e_2f_85_controller/src/ai_controller/checkpoint/rt1_real_ur5e-panda-datasets_CO-training-Batch48"
+    />
+    <arg name="model_name"
+        default="model_save-25290.pt" /> -->
+
+
+<!-- FINETUNED SIM TO REAL -->
+    <!-- <arg name="model_folder"
+        default="/home/gianl/catkin_ws/src/Ur5e-2f-85f/ur5e_2f_85_controller/src/ai_controller/checkpoint/rt1_real__sim-to-real_one_dem-Batch48"
+    />
+    <arg name="model_name"
+        default="model_save-57330.pt" /> -->
+
+<!--
+57330 -> probably overfit
+37440 -> just after the curve
+-->
+
+
+<!-- FINETUNED UR5E-DATASET REAL -->
+    <!-- <arg name="model_folder"
+        default="/home/gianl/catkin_ws/src/Ur5e-2f-85f/ur5e_2f_85_controller/src/ai_controller/checkpoint/rt1_real_ur5e-data-to-real_one_dem-Batch48"
+    />
+    <arg name="model_name"
+        default="model_save-31993.pt" /> -->
+
+
+    <!-- <arg name="model_folder"
+        default="/home/gianl/catkin_ws/src/Ur5e-2f-85f/ur5e_2f_85_controller/src/ai_controller/checkpoint/rt1_real_abs_only_train_2-Batch48"
+    />
+    <arg name="model_name"
+        default="model_save-9331.pt" />
+ -->
+
+    <!-- <arg name="model_folder"
+        default="/home/gianl/catkin_ws/src/Ur5e-2f-85f/ur5e_2f_85_controller/src/ai_controller/checkpoint/rt1_real_finetuning_sim_to_real_abs_new_condmodule_optimized_dataset_2-Batch48"
+    />
+
+    <arg name="model_name"
+        default="model_save-251100.pt" /> -->
+
+    <!-- <arg name="model_folder"
+    default="/home/gianl/catkin_ws/src/Ur5e-2f-85f/ur5e_2f_85_controller/src/ai_controller/checkpoint/mosaic_ctod/Real-Pick-Place-MOSAIC-CTOD-No-State-Finetune-Batch48"
+    />
+    <arg name="model_name"
+        default="model_save_-79740.pt" /> -->
+
+
+    <rosparam command="load" file="$(find dataset_collector)/config/dataset_collector.yaml" />
+    <!-- Context-->
+    <arg name="context_path"
+        default="/home/gianl/catkin_ws/src/Ur5e-2f-85f/ur5e_2f_85_controller/src/ai_controller/context" />
+    <arg
+        name="task_name"
+        default="pick_place" />
+    <arg name="context_robot_name"
+        default="panda" />
+    <arg name="variation_number"
+        default="0" />
+    <arg name="trj_number"
+        default="0" />
+    <arg name="save_path"
+        default="/media/gianl/Sandisk" />
+
+    <!-- Gripper drivers -->
+    <!-- <node name="robotiq_2f_gripper_control" pkg="robotiq_2f_gripper_control"
+        type="Robotiq2FGripperRtuNode.py" args="/tmp/ttyUR" output="screen" required="true" /> -->
+
+    <!-- Run move group-->
+    <!-- <include file="$(find ur5e_2f_85_camera_table_moveit_config)/launch/move_group.launch">
+        <arg name="debug" default="false" />
+        <arg name="load_robot_description" value="false" />
+    </include> -->
+
+    <!-- Run camera controller -->
+    <!-- <include file="$(find zed_camera_controller)/launch/zed_camera_controller.launch">
+    </include> -->
+
+    <!-- Run ai-controller-node -->
+    <node name="test_node" pkg="ur5e_2f_85_controller"
+        type="test_node.py"
+        args="--model_folder  $(arg model_folder) --model_name  $(arg model_name) --context_path  $(arg context_path) --task_name  $(arg task_name) --context_robot_name  $(arg context_robot_name) --variation_number $(arg variation_number) --trj_number $(arg trj_number) --save_path $(arg save_path) --write_summary --debug"
+        output="screen"
+        required="true">
+    </node>
+
+</launch>

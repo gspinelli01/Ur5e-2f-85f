@@ -1,0 +1,47 @@
+<launch>
+    <arg name="model_folder"
+        default="/home/ciccio/Desktop/catkin_ws/src/Ur5e-2f-85f/ur5e_2f_85_controller/src/ai_controller/checkpoint/mosaic_ctod"
+    />
+    <arg name="model_name"
+        default="model_save-242280.pt" />
+    <!-- <arg name="model_folder"
+    default="/home/ciccio/Desktop/catkin_ws/src/Ur5e-2f-85f/ur5e_2f_85_controller/src/ai_controller/checkpoint/mosaic"
+    />
+    <arg name="model_name"
+        default="model_save-104315.pt" /> -->
+
+    <!-- Context-->
+    <arg name="context_path"
+        default="/home/ciccio/Desktop/catkin_ws/src/Ur5e-2f-85f/ur5e_2f_85_controller/src/ai_controller/context" />
+    <arg name="task_name"
+        default="pick_place" />
+    <arg name="context_robot_name"
+        default="panda" />
+    <arg name="variation_number"
+        default="0" />
+    <arg name="trj_number"
+        default="0" />
+
+    <!-- Gripper drivers -->
+    <!-- <node name="robotiq_2f_gripper_control" pkg="robotiq_2f_gripper_control"
+        type="Robotiq2FGripperRtuNode.py" args="/tmp/ttyUR" output="screen" required="true" /> -->
+
+    <!-- Run move group-->
+    <!-- <include file="$(find ur5e_2f_85_camera_table_moveit_config)/launch/move_group.launch">
+        <arg name="debug" default="false" />
+        <arg name="load_robot_description" value="false" />
+    </include> -->
+
+    <!-- Run camera controller -->
+    <!-- <include file="$(find zed_camera_controller)/launch/zed_camera_controller.launch">
+    </include> -->
+
+    <!-- Run ai-controller-node -->
+    <node name="ai_controller_node" pkg="ur5e_2f_85_controller"
+        type="ai_controller_node.py"
+        args="--model_folder  $(arg model_folder) --model_name  $(arg model_name) --context_path  $(arg context_path) --task_name  $(arg task_name) --context_robot_name  $(arg context_robot_name) --variation_number $(arg variation_number) --trj_number $(arg trj_number) --debug"
+        output="screen"
+        required="true">
+    </node>
+
+</launch>

@@ -74,12 +74,13 @@ class KPController():
             image[row * img_h:(row + 1) * img_h, col *
                   img_w:(col + 1) * img_w, :] = self._context[t][:, :, ::-1]
 
-        while True:
-            cv2.imshow("Image", image)
-            cv2.setWindowProperty("Image", cv2.WND_PROP_TOPMOST, 1)
-            key = cv2.waitKey(0)
-            if key == 27:
-                break
+        # while True:
+        cv2.imshow("Image", image)
+        cv2.setWindowProperty("Image", cv2.WND_PROP_TOPMOST, 1)
+        cv2.waitKey(2000)
+        # key = cv2.waitKey(2000)
+        # if key == 27:
+            # break
     def pre_process_context(self):
         # 4. Pre-process context frames
         self._context = [self.pre_process_input(

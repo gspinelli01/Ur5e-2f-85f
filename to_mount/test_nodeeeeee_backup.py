@@ -495,7 +495,7 @@ if __name__ == '__main__':
             variation_number=variation_number,
             trj_number=trj_number,
             camera_name='camera_front')
-    elif "mosaic_kp" in model_folder:
+    elif "mosaic_kp" in model_folder or "MOSAIC-KP" in model_folder:
         ai_controller = KPController(
             conf_file_path=conf_file_path,
             model_file_path=model_file_path,
@@ -560,7 +560,7 @@ if __name__ == '__main__':
                 rospy.logerr(e)
 
     enter = None
-    cnt = 3000
+    cnt = 1000
         
     while True:
         rospy.loginfo(f"Starting rollout number {cnt}")
@@ -605,7 +605,12 @@ if __name__ == '__main__':
         ################################
         TRAINING_DOMAIN = False
         DELTA_ACTION = False
-        MOSAIC_CTOD = False
+        MOSAIC_CTOD = True
+        MOSAIC_WITH_STATE = False
+        STUCK_TROUBLESHOOT = False
+        STUCK_PATIENCE = 5
+        stuck_counter = 0
+        old_norm = None
         if TRAINING_DOMAIN:
             with open("/home/gianl/catkin_ws/src/Ur5e-2f-85f/ur5e_2f_85_controller/src/ai_controller/checkpoint/real_new_ur5e_pick_place_converted_absolute/task_14/traj000.pkl", "rb") as f:
                 sample = pkl.load(f)
@@ -687,10 +692,11 @@ if __name__ == '__main__':
 
                     tcp_rot_euler_numpy = _mat2euler(_quat2mat(tcp_rot_quat_numpy))
 
-                    state = np.concatenate((tcp_pose_numpy, tcp_rot_euler_numpy, gripper_state))
+                    if not MOSAIC_WITH_STATE:
+                        state = np.concatenate((tcp_pose_numpy, tcp_rot_euler_numpy, gripper_state))
 
 
-                else:
+                if MOSAIC_WITH_STATE:
                     data = rospy.wait_for_message(
                         '/joint_states',
                         JointState)
@@ -775,19 +781,46 @@ if __name__ == '__main__':
                 rospy.loginfo(f"Diff pos: {(desired_position - tcp_pose_numpy).round(3)}")
                 rospy.loginfo(f"Diff RPY: {(_mat2euler(_quat2mat(desired_orientation)) - tcp_rot_euler_numpy).round(3)}")
                 rospy.loginfo(f"Diff gripper: {(gripper_finger_pos % 254) - gripper_state[0]}")
+                rospy.loginfo(f"Stuck counter: {stuck_counter}")
 
-            # if desired_position[2] < 0.10 and not picked:
-            #     rospy.loginfo("Adding offset during reaching")
-            #     desired_position[0] = desired_position[0] + 0.03
-            # desired_position[2] -= 0.01
+            if MOSAIC_CTOD:
+                if desired_position[2] < 0.10 and not picked:
+                    rospy.loginfo("Adding offset during reaching")
+                    desired_position[0] = desired_position[0] + 0.02
+                # desired_position[2] -= 0.01
             if not TRAINING_DOMAIN and not DELTA_ACTION and not MOSAIC_CTOD:
-                if t < -1 or ((desired_position - tcp_pose_numpy).round(3) > 0.50).any():
+                if t < -1 or ((desired_position - tcp_pose_numpy).round(3) > 0.45).any():
                     desired_position = tcp_pose_numpy
                     desired_orientation = tcp_rot_quat_numpy
                     gripper_finger_pos = int(gripper_state[0])
                 # else:
                 #     desired_orientation = tcp_rot_quat_numpy # fix rotation
+                if desired_position[1] - tcp_pose_numpy[1] < -0.2:
+                    desired_position = tcp_pose_numpy
+                    desired_orientation = tcp_rot_quat_numpy
+                    gripper_finger_pos = int(gripper_state[0])
+                    rospy.loginfo(f"Ur5 wants to go back!!!")
 
+            
+            if STUCK_TROUBLESHOOT and not MOSAIC_CTOD:
+                # if gripper is still stuck, increase counter
+                if np.linalg.norm((desired_position - tcp_pose_numpy).round(3)) == 0.0:
+                    stuck_counter+=1
+                
+                if stuck_counter >= STUCK_PATIENCE:
+                    # move up or down
+                    if desired_position[2] > 0.10:
+                        desired_position[2] = desired_position[2] - 0.05 
+                    elif desired_position[2] > -0.03 and desired_position[2] <= 0.10:
+                        desired_position[2] = desired_position[2] - 0.03 
+                    else:
+                        desired_position[2] = desired_position[2] + 0.05 
+                    # reset counter
+                    stuck_counter = 0
+
+                # reset counter if there's movement
+                if np.linalg.norm((desired_position - tcp_pose_numpy).round(3)) != 0.0:
+                    stuck_counter = 0
 
                 # if "task_00" in 
             # if task_number == 0:
@@ -814,8 +847,9 @@ if __name__ == '__main__':
                 desired_orientation = tcp_rot_quat_numpy
 
             if MOSAIC_CTOD:
+                desired_orientation = tcp_rot_quat_numpy
                 res = move_group.go_to_pose_goal(position=desired_position,
-                                        orientation=tcp_rot_quat_numpy,
+                                        orientation=desired_orientation,
                                         gripper_pos=gripper_finger_pos)
             else:
                 res = move_group.go_to_pose_goal(position=desired_position,
@@ -839,10 +873,11 @@ if __name__ == '__main__':
                 if picked and not picked_old:
                     rospy.loginfo("Transition open->close: Object pickded")
                     picked_old = picked
-                    # desired_position[2] = desired_position[2] + 0.05 
-                    # move_group.go_to_pose_goal(position=desired_position,
-                    #                    orientation=desired_orientation,
-                    #                    gripper_pos=gripper_finger_pos)
+                    if MOSAIC_CTOD:
+                        desired_position[2] = desired_position[2] + 0.05 
+                        move_group.go_to_pose_goal(position=desired_position,
+                                        orientation=desired_orientation,
+                                        gripper_pos=gripper_finger_pos)
                 else:
                     rospy.loginfo("Transition open->close: Object not picked")
 

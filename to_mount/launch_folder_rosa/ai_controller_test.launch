@@ -9,12 +9,26 @@
     default="model_save-6744.pt" /> -->
 
 
+<!-- GOOD COTRAINING ALL -->
+<!-- <arg name="model_folder"
+    default="/home/gianl/catkin_ws/src/Ur5e-2f-85f/ur5e_2f_85_controller/src/ai_controller/checkpoint/rt1_real_all_COtraining-Batch48"
+/>
+<arg name="model_name"
+    default="model_save-21075.pt" /> -->
+
+<!-- X_ALL_MS_ALL_to_MR_UR5 -->
+<!-- <arg name="model_folder"
+    default="/home/gianl/catkin_ws/src/Ur5e-2f-85f/ur5e_2f_85_controller/src/ai_controller/checkpoint/rt1_real_X-all+MS-all_to_MR-UR5_finetuning-Batch48"
+/>
+<arg name="model_name"
+    default="model_save-2600.pt" /> -->
+
 <!-- COTRIANING PANDA-SIM UR5-SIM UR5-REAL -->
-<arg name="model_folder"
+<!-- <arg name="model_folder"
     default="/home/gianl/catkin_ws/src/Ur5e-2f-85f/ur5e_2f_85_controller/src/ai_controller/checkpoint/rt1_real_panda-sim_ur5e-sim_ur5e-real_COtraining-Batch48"
 />
 <arg name="model_name"
-    default="model_save-17000.pt" />
+    default="model_save-17000.pt" /> -->
 
 
 <!-- X-UR5, MS-UR5 -> MR-UR5 -->
@@ -74,11 +88,39 @@
     <arg name="model_name"
         default="model_save-251100.pt" /> -->
 
+
+<!-- MOSAIC MODELS -->
+
+<!-- MOSAIC CTOD NO STATE -->
     <!-- <arg name="model_folder"
     default="/home/gianl/catkin_ws/src/Ur5e-2f-85f/ur5e_2f_85_controller/src/ai_controller/checkpoint/mosaic_ctod/Real-Pick-Place-MOSAIC-CTOD-No-State-Finetune-Batch48"
     />
     <arg name="model_name"
         default="model_save_-79740.pt" /> -->
+
+
+<!-- MOSAIC CTOD STATE -->
+
+<!-- <arg name="model_folder"
+    default="/home/gianl/catkin_ws/src/Ur5e-2f-85f/ur5e_2f_85_controller/src/ai_controller/checkpoint/mosaic_ctod/Real-Pick-Place-MOSAIC-CTOD-State-Finetune-Batch48"
+/>
+<arg name="model_name"
+    default="model_save-86.pt" /> -->
+
+
+<!-- MOSAIC KP NO STATE -->
+<arg name="model_folder"
+    default="/home/gianl/catkin_ws/src/Ur5e-2f-85f/ur5e_2f_85_controller/src/ai_controller/checkpoint/Real-1Task-pick_place-MOSAIC-KP-No-State-Finetune-Batch48"
+/>
+<arg name="model_name"
+    default="model_save-62.pt" />
+
+<!-- MOSAIC KP STATE -->
+<!-- <arg name="model_folder"
+default="/home/gianl/catkin_ws/src/Ur5e-2f-85f/ur5e_2f_85_controller/src/ai_controller/checkpoint/Real-1Task-pick_place-MOSAIC-KP_State_true_Finetued-Batch48"
+/>
+<arg name="model_name"
+    default="model_save-86.pt" /> -->
 
 
     <rosparam command="load" file="$(find dataset_collector)/config/dataset_collector.yaml" />
@@ -114,7 +156,7 @@
     <!-- Run ai-controller-node -->
     <node name="test_node" pkg="ur5e_2f_85_controller"
         type="test_node.py"
-        args="--model_folder  $(arg model_folder) --model_name  $(arg model_name) --context_path  $(arg context_path) --task_name  $(arg task_name) --context_robot_name  $(arg context_robot_name) --variation_number $(arg variation_number) --trj_number $(arg trj_number) --save_path $(arg save_path) --write_summary --debug"
+        args="--model_folder  $(arg model_folder) --model_name  $(arg model_name) --context_path  $(arg context_path) --task_name  $(arg task_name) --context_robot_name  $(arg context_robot_name) --variation_number $(arg variation_number) --trj_number $(arg trj_number) --save_path $(arg save_path) --write_summary"
         output="screen"
         required="true">
     </node>

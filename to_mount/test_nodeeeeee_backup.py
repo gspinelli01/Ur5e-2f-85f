@@ -560,7 +560,7 @@ if __name__ == '__main__':
                 rospy.logerr(e)
 
     enter = None
-    cnt = 1000
+    cnt = 2000
         
     while True:
         rospy.loginfo(f"Starting rollout number {cnt}")
@@ -605,9 +605,9 @@ if __name__ == '__main__':
         ################################
         TRAINING_DOMAIN = False
         DELTA_ACTION = False
-        MOSAIC_CTOD = True
+        MOSAIC_CTOD = False
         MOSAIC_WITH_STATE = False
-        STUCK_TROUBLESHOOT = False
+        STUCK_TROUBLESHOOT = True
         STUCK_PATIENCE = 5
         stuck_counter = 0
         old_norm = None
@@ -777,11 +777,11 @@ if __name__ == '__main__':
             # rospy.loginfo(f"Desired RPY: {_mat2euler(_quat2mat(desired_orientation)).round(3)}")
             # rospy.loginfo(f"Current gripper: {gripper_state}")
             # rospy.loginfo(f"Desired gripper: {gripper_finger_pos}")
-            if not TRAINING_DOMAIN and not DELTA_ACTION and not MOSAIC_CTOD:
-                rospy.loginfo(f"Diff pos: {(desired_position - tcp_pose_numpy).round(3)}")
-                rospy.loginfo(f"Diff RPY: {(_mat2euler(_quat2mat(desired_orientation)) - tcp_rot_euler_numpy).round(3)}")
-                rospy.loginfo(f"Diff gripper: {(gripper_finger_pos % 254) - gripper_state[0]}")
-                rospy.loginfo(f"Stuck counter: {stuck_counter}")
+            # if not TRAINING_DOMAIN and not DELTA_ACTION and not MOSAIC_CTOD:
+            #     rospy.loginfo(f"Diff pos: {(desired_position - tcp_pose_numpy).round(3)}")
+            #     rospy.loginfo(f"Diff RPY: {(_mat2euler(_quat2mat(desired_orientation)) - tcp_rot_euler_numpy).round(3)}")
+            #     rospy.loginfo(f"Diff gripper: {(gripper_finger_pos % 254) - gripper_state[0]}")
+            #     rospy.loginfo(f"Stuck counter: {stuck_counter}")
 
             if MOSAIC_CTOD:
                 if desired_position[2] < 0.10 and not picked:
@@ -799,7 +799,7 @@ if __name__ == '__main__':
                     desired_position = tcp_pose_numpy
                     desired_orientation = tcp_rot_quat_numpy
                     gripper_finger_pos = int(gripper_state[0])
-                    rospy.loginfo(f"Ur5 wants to go back!!!")
+                    # rospy.loginfo(f"Ur5 wants to go back!!!")
 
             
             if STUCK_TROUBLESHOOT and not MOSAIC_CTOD:

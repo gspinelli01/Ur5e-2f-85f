@@ -17,11 +17,19 @@
     default="model_save-21075.pt" /> -->
 
 <!-- X_ALL_MS_ALL_to_MR_UR5 -->
-<!-- <arg name="model_folder"
+<arg name="model_folder"
     default="/home/gianl/catkin_ws/src/Ur5e-2f-85f/ur5e_2f_85_controller/src/ai_controller/checkpoint/rt1_real_X-all+MS-all_to_MR-UR5_finetuning-Batch48"
 />
 <arg name="model_name"
-    default="model_save-2600.pt" /> -->
+    default="model_save-2600.pt" />
+
+<!-- FROM CO-TRAINING TO FINETUNING -->
+<!-- <arg name="model_folder"
+    default="/home/gianl/catkin_ws/src/Ur5e-2f-85f/ur5e_2f_85_controller/src/ai_controller/checkpoint/rt1_real_MS_ALL_MR_ur5_to_MR_UR5_finetuning-lr5e-5-Batch48"
+/>
+<arg name="model_name"
+    default="model_save-260.pt" /> -->
+
 
 <!-- COTRIANING PANDA-SIM UR5-SIM UR5-REAL -->
 <!-- <arg name="model_folder"
@@ -109,11 +117,11 @@
 
 
 <!-- MOSAIC KP NO STATE -->
-<arg name="model_folder"
+<!-- <arg name="model_folder"
     default="/home/gianl/catkin_ws/src/Ur5e-2f-85f/ur5e_2f_85_controller/src/ai_controller/checkpoint/Real-1Task-pick_place-MOSAIC-KP-No-State-Finetune-Batch48"
 />
 <arg name="model_name"
-    default="model_save-62.pt" />
+    default="model_save-62.pt" /> -->
 
 <!-- MOSAIC KP STATE -->
 <!-- <arg name="model_folder"

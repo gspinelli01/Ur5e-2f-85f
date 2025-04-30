@@ -6,3 +6,6 @@ __pycache__
 *.pyc
 context/*
 .vscode
+.vscode-server
+*.pkl
+to_mount/ai_controller_rosa/checkpoint/*

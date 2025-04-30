@@ -12,7 +12,7 @@ from torchvision.transforms.functional import resized_crop
 from multi_task_il.models.cond_target_obj_detector.utils import project_bboxes
 from colorama import Fore, Back, Style
 print(f"cv2 file ctod controller {cv2.__file__}")
-from multi_task_il.datasets.command_encoder.cond_module import CondModule
+from multi_task_il.models.command_encoder.cond_module import CondModule
 import math
 import torchvision
 
